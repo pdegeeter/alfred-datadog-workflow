@@ -60,6 +60,28 @@ env and the time range of the query.
 - <kbd>⇧</kbd><kbd>↩</kbd> its monitors
 - <kbd>⇧</kbd><kbd>⌘</kbd><kbd>↩</kbd> copy the service name
 
+### Monitors — `ddm`
+
+Lists the monitors of the env (tagged `env:<DD_ENV>`, or with no `env:` tag),
+alerting first: Alert, Warn, No Data, OK; then the ones you open most, then
+by name. Free terms match the name; `team:<name>` and `service:<name>` keep
+monitors with those tags; `env:<value>` picks another env. The subtitle shows
+the state, type, service and team tags and when it last triggered.
+
+- <kbd>↩</kbd> open the monitor
+- <kbd>⌘</kbd><kbd>↩</kbd> open the monitor list in Datadog, searched for the
+  query
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+
+### Incidents — `ddi`
+
+Lists the incidents that are not resolved (active and stable), most severe
+first, then the newest. Free terms match the title. The subtitle shows the
+severity, state, commander and age; with none, it says "No active incident".
+
+- <kbd>↩</kbd> open the incident
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+
 ### Logs — `ddl`
 
 Builds a Log Explorer link from the query, without any API call: the query

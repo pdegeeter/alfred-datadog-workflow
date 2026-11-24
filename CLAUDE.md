@@ -20,7 +20,8 @@ local cache. A single binary, `alfred-dd`, backs every object of the Alfred
 graph:
 
 - **Script Filters**, one per keyword: `dashboards` (`ddd`), `services`
-  (`dds`), `logs` (`ddl`, no API call). They print Alfred JSON (`filters.rs`), with `rerun` while a
+  (`dds`), `monitors` (`ddm`), `logs` (`ddl`, no API call), `incidents`
+  (`ddi`). They print Alfred JSON (`filters.rs`), with `rerun` while a
   background refresh runs.
 - `alfred-dd refresh <kind> [env]`, spawned detached by a script filter
   serving a stale cache (`env` only for services).
@@ -91,7 +92,10 @@ new logic pure and route any new spawn through it.
   tracking take `from_ts`/`to_ts`/`live`; traces and the service page take
   `start`/`end`/`paused`. Incidents by numeric public id.
 - `dashboards.rs` / `notebooks.rs` — parsing into `Board`; `services.rs` —
-  APM names + catalog definitions merged into `Service`; `sources.rs` — fetch
+  APM names + catalog definitions merged into `Service`; `monitors.rs` —
+  `Monitor`, state order, env scope (`env:` tag or none); `incidents.rs` —
+  `Incident`, commander from the `commander` facet, severity order;
+  `sources.rs` — fetch
   (pagination), cache key, `load` / `refresh` per `cache::Target` (kind + env
   for services); `filters.rs` — one function per script filter.
 - `action.rs` — the `arg` protocol (`Action::to_arg` / `Action::parse`) and

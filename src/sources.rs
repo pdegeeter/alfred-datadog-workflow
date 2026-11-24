@@ -6,6 +6,8 @@ use serde::Serialize;
 use crate::app::App;
 use crate::cache::{Key, Kind, Loaded, Store, Target};
 use crate::dashboards::{self, Board};
+use crate::incidents::{self, Incident};
+use crate::monitors::{self, Monitor};
 use crate::notebooks;
 use crate::pup::{Pup, PupError};
 use crate::services::{self, Service};
@@ -106,6 +108,33 @@ pub fn fetch_services(pup: &Pup, env: &str, now_ms: i64) -> Result<Vec<Service>,
     Ok(services::merge(traced, definitions))
 }
 
+/// Every monitor, page by page until `page_count`.
+pub fn fetch_monitors(pup: &Pup) -> Result<Vec<Monitor>, PupError> {
+    let mut all = Vec::new();
+
+    for page in 0..MAX_PAGES {
+        let parsed = get(
+            pup,
+            Kind::Monitors,
+            &monitors::endpoint(page),
+            monitors::parse,
+        )?;
+        let last = parsed.monitors.is_empty() || page + 1 >= parsed.page_count;
+        all.extend(parsed.monitors);
+
+        if last {
+            break;
+        }
+    }
+
+    Ok(all)
+}
+
+/// Active and stable incidents.
+pub fn fetch_incidents(pup: &Pup) -> Result<Vec<Incident>, PupError> {
+    get(pup, Kind::Incidents, incidents::ENDPOINT, incidents::parse)
+}
+
 /// Serve `target` from the cache, fetching with `fetch` when there is none
 /// and starting `alfred-dd refresh <kind> [env]` in the background when it is
 /// stale.
@@ -143,6 +172,14 @@ pub fn load_notebooks(app: &App) -> Loaded<Board> {
     load(app, &Target::new(Kind::Notebooks), fetch_notebooks)
 }
 
+pub fn load_monitors(app: &App) -> Loaded<Monitor> {
+    load(app, &Target::new(Kind::Monitors), fetch_monitors)
+}
+
+pub fn load_incidents(app: &App) -> Loaded<Incident> {
+    load(app, &Target::new(Kind::Incidents), fetch_incidents)
+}
+
 pub fn load_services(app: &App, env: &str) -> Loaded<Service> {
     load(app, &Target::services(env), |pup| {
         fetch_services(pup, env, app.now_ms)
@@ -163,8 +200,7 @@ pub fn refresh(app: &App, target: &Target) -> Result<Option<usize>, PupError> {
         Kind::Services => store.refresh(kind, &key, app.now_ms, || {
             fetch_services(&pup, env_of(app, target), app.now_ms)
         }),
-        Kind::Monitors | Kind::Incidents => {
-            Err(PupError::Other(format!("{kind} are not available yet")))
-        }
+        Kind::Monitors => store.refresh(kind, &key, app.now_ms, || fetch_monitors(&pup)),
+        Kind::Incidents => store.refresh(kind, &key, app.now_ms, || fetch_incidents(&pup)),
     }
 }

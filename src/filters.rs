@@ -11,6 +11,8 @@ use crate::app::App;
 use crate::cache::{Kind, Loaded, Store, Target};
 use crate::dashboards::{Board, BoardKind};
 use crate::frecency::Frecency;
+use crate::incidents::{self, Incident};
+use crate::monitors::{self, Monitor};
 use crate::query::Query;
 use crate::ranking;
 use crate::services::Service;
@@ -270,6 +272,133 @@ pub fn services(app: &App, input: &str) -> Listing {
     items.extend(alfred::service_items(ranked, &app.urls(), &env, window));
     items.push(alfred::refresh_item(
         &[Target::services(&env)],
+        loaded.fetched_ms,
+        app.now_ms,
+    ));
+
+    Listing {
+        items,
+        rerun: loaded.rerun,
+    }
+}
+
+/// Whether `values` (normalized `key:` filter values) all appear among the
+/// monitor's `key:` tags. No values: no constraint.
+fn has_tags(monitor: &Monitor, key: &str, values: &[String]) -> bool {
+    values.iter().all(|value| {
+        monitor
+            .tag_values(key)
+            .any(|tag| ranking::normalize(tag) == *value)
+    })
+}
+
+/// `ddm`: monitors of the env (`env:` or `DD_ENV`; monitors without an `env:`
+/// tag always count), filtered by name terms and `team:` / `service:` tags,
+/// alerting first, then frecency, then name.
+pub fn monitors(app: &App, input: &str) -> Listing {
+    let query = Query::parse(input);
+    let env = query.env_or(&app.config.env).to_owned();
+    let loaded = sources::load_monitors(app);
+    let terms = ranking::terms(&query.terms);
+    let filters: Vec<(&str, Vec<String>)> = ["team", "service"]
+        .into_iter()
+        .map(|key| {
+            let values = query
+                .filter_values(key)
+                .into_iter()
+                .filter(|value| !value.is_empty())
+                .map(ranking::normalize)
+                .collect();
+
+            (key, values)
+        })
+        .collect();
+
+    let frecency = frecency(app);
+    let mut matched: Vec<(f64, Monitor)> = loaded
+        .items
+        .into_iter()
+        .filter(|monitor| monitor.in_env(&env))
+        .filter(|monitor| {
+            filters
+                .iter()
+                .all(|(key, values)| has_tags(monitor, key, values))
+        })
+        .filter(|monitor| ranking::tier(&monitor.name, &terms).is_some())
+        .map(|monitor| (frecency.score(&monitor.frecency_key(), app.now_ms), monitor))
+        .collect();
+
+    matched.sort_by(|(score_a, a), (score_b, b)| {
+        monitors::status_rank(&a.status)
+            .cmp(&monitors::status_rank(&b.status))
+            .then_with(|| score_b.partial_cmp(score_a).unwrap_or(Ordering::Equal))
+            .then_with(|| ranking::normalize(&a.name).cmp(&ranking::normalize(&b.name)))
+    });
+
+    let monitors: Vec<Monitor> = matched.into_iter().map(|(_, monitor)| monitor).collect();
+    let mut items = Vec::new();
+
+    if let Some(error) = &loaded.error {
+        items.push(alfred::pup_error_item(Kind::Monitors, error));
+    } else if monitors.is_empty() {
+        items.push(alfred::error_item(
+            "No matching monitor",
+            &format!("No monitor matches in {env}"),
+        ));
+    }
+
+    let search = query.passthrough.join(" ");
+    items.extend(alfred::monitor_items(
+        monitors,
+        &app.urls(),
+        &search,
+        app.now_ms,
+    ));
+    items.push(alfred::refresh_item(
+        &[Target::new(Kind::Monitors)],
+        loaded.fetched_ms,
+        app.now_ms,
+    ));
+
+    Listing {
+        items,
+        rerun: loaded.rerun,
+    }
+}
+
+/// `ddi`: active and stable incidents, most severe first, then newest;
+/// free terms filter the titles.
+pub fn incidents(app: &App, input: &str) -> Listing {
+    let query = Query::parse(input);
+    let loaded = sources::load_incidents(app);
+    let terms = ranking::terms(&query.terms);
+
+    let mut incidents: Vec<Incident> = loaded
+        .items
+        .into_iter()
+        .filter(|incident| ranking::tier(&incident.title, &terms).is_some())
+        .collect();
+
+    incidents.sort_by(|a, b| {
+        incidents::severity_rank(a.severity.as_deref())
+            .cmp(&incidents::severity_rank(b.severity.as_deref()))
+            .then_with(|| newest_first(a.created_ms, b.created_ms))
+    });
+
+    let mut items = Vec::new();
+
+    if let Some(error) = &loaded.error {
+        items.push(alfred::pup_error_item(Kind::Incidents, error));
+    } else if incidents.is_empty() {
+        items.push(alfred::error_item(
+            "No active incident",
+            "No active or stable incident matches",
+        ));
+    }
+
+    items.extend(alfred::incident_items(incidents, &app.urls(), app.now_ms));
+    items.push(alfred::refresh_item(
+        &[Target::new(Kind::Incidents)],
         loaded.fetched_ms,
         app.now_ms,
     ));

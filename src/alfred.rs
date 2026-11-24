@@ -11,6 +11,8 @@ use powerpack::{Item, Key, Modifier};
 use crate::action::Action;
 use crate::cache::{Kind, Target};
 use crate::dashboards::{Board, BoardKind};
+use crate::incidents::Incident;
+use crate::monitors::Monitor;
 use crate::pup::{self, PupError};
 use crate::services::Service;
 use crate::time;
@@ -275,6 +277,114 @@ pub fn service_items(services: Vec<Service>, urls: &Urls, env: &str, window: Win
                     &[Key::Command, Key::Shift],
                     "Copy the service name",
                     &Action::Copy { text: name },
+                ))
+        })
+        .collect()
+}
+
+/// `ddm`: one item per monitor.
+///
+/// ↩ open · ⌘ the monitor list searched for `search` · ⌥ copy URL.
+pub fn monitor_items(monitors: Vec<Monitor>, urls: &Urls, search: &str, now_ms: i64) -> Vec<Item> {
+    let list_url = urls.monitor_search(search);
+
+    monitors
+        .into_iter()
+        .map(|monitor| {
+            let url = urls.monitor(monitor.id);
+            let mut subtitle = vec![monitor.status.clone(), monitor.kind.clone()];
+            let tags: Vec<String> = ["service", "team"]
+                .into_iter()
+                .flat_map(|key| {
+                    monitor
+                        .tag_values(key)
+                        .map(move |value| format!("{key}:{value}"))
+                })
+                .collect();
+
+            if !tags.is_empty() {
+                subtitle.push(tags.join(", "));
+            }
+
+            if let Some(triggered) = monitor.last_triggered_ms {
+                subtitle.push(format!("triggered {}", time::ago(triggered, now_ms)));
+            }
+
+            subtitle.retain(|part| !part.is_empty());
+
+            let icon = match monitor.status.as_str() {
+                "Alert" => icons::alert(),
+                "Warn" => icons::warning(),
+                "No Data" => icons::unknown(),
+                _ => icons::document(),
+            };
+
+            Item::new(monitor.name.clone())
+                .subtitle(subtitle.join(" · "))
+                .arg(
+                    Action::Open {
+                        key: monitor.frecency_key(),
+                        url: url.clone(),
+                    }
+                    .to_arg(),
+                )
+                .icon(icon)
+                .copy_text(url.clone())
+                .modifier(modifier(
+                    &[Key::Command],
+                    "Search the monitor list in Datadog",
+                    &Action::OpenUrl {
+                        url: list_url.clone(),
+                    },
+                ))
+                .modifier(modifier(
+                    &[Key::Option],
+                    "Copy the URL",
+                    &Action::Copy { text: url },
+                ))
+        })
+        .collect()
+}
+
+/// `ddi`: one item per incident. ↩ open · ⌥ copy URL.
+pub fn incident_items(incidents: Vec<Incident>, urls: &Urls, now_ms: i64) -> Vec<Item> {
+    incidents
+        .into_iter()
+        .map(|incident| {
+            let url = urls.incident(incident.public_id);
+            let mut subtitle = vec![
+                incident
+                    .severity
+                    .clone()
+                    .unwrap_or_else(|| "UNKNOWN".to_owned()),
+                incident.state.clone(),
+            ];
+
+            if let Some(commander) = &incident.commander {
+                subtitle.push(commander.clone());
+            }
+
+            if let Some(created) = incident.created_ms {
+                subtitle.push(time::ago(created, now_ms));
+            }
+
+            subtitle.retain(|part| !part.is_empty());
+
+            Item::new(format!("#{} {}", incident.public_id, incident.title))
+                .subtitle(subtitle.join(" · "))
+                .arg(
+                    Action::Open {
+                        key: incident.frecency_key(),
+                        url: url.clone(),
+                    }
+                    .to_arg(),
+                )
+                .icon(icons::alert())
+                .copy_text(url.clone())
+                .modifier(modifier(
+                    &[Key::Option],
+                    "Copy the URL",
+                    &Action::Copy { text: url },
                 ))
         })
         .collect()

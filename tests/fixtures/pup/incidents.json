@@ -1,0 +1,213 @@
+{
+  "data": {
+    "attributes": {
+      "facets": {
+        "commander": [
+          {
+            "count": 1,
+            "uuid": "00000000-0000-0000-0000-0000000000a1",
+            "name": "Alice Martin",
+            "email": "alice@example.com",
+            "handle": "alice@example.com"
+          },
+          {
+            "count": 1,
+            "uuid": "00000000-0000-0000-0000-0000000000b2",
+            "name": "Bob Durand",
+            "email": "bob@example.com",
+            "handle": "bob@example.com"
+          }
+        ],
+        "created_by": [
+          {
+            "count": 3,
+            "uuid": "00000000-0000-0000-0000-0000000000a1",
+            "name": "Alice Martin",
+            "email": "alice@example.com",
+            "handle": "alice@example.com"
+          }
+        ]
+      },
+      "incidents": [
+        {
+          "data": {
+            "attributes": {
+              "case_id": null,
+              "created": "2026-11-24T08:00:00Z",
+              "customer_impact_scope": null,
+              "customer_impacted": false,
+              "declared": "2026-10-29T12:09:14Z",
+              "detected": "2026-10-29T12:05:58Z",
+              "fields": {
+                "severity": {
+                  "type": "dropdown",
+                  "value": "SEV-2"
+                },
+                "state": {
+                  "type": "dropdown",
+                  "value": "active"
+                }
+              },
+              "incident_type_uuid": "00000000-0000-0000-0000-000000000400",
+              "is_test": false,
+              "modified": "2026-11-24T08:00:00Z",
+              "non_datadog_creator": null,
+              "public_id": 12,
+              "resolved": null,
+              "severity": "SEV-2",
+              "state": "active",
+              "time_to_detect": 0,
+              "time_to_repair": 0,
+              "time_to_resolve": 3221,
+              "title": "Checkout API returns 500",
+              "visibility": "organization"
+            },
+            "id": "00000000-0000-0000-0000-000000000200",
+            "relationships": {
+              "commander_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              },
+              "created_by_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              },
+              "last_modified_by_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              }
+            },
+            "type": "incidents"
+          }
+        },
+        {
+          "data": {
+            "attributes": {
+              "case_id": null,
+              "created": "2026-11-24T07:00:00Z",
+              "customer_impact_scope": null,
+              "customer_impacted": false,
+              "declared": "2023-01-16T14:50:06Z",
+              "detected": "2023-01-16T14:50:06Z",
+              "fields": {
+                "severity": {
+                  "type": "dropdown",
+                  "value": "SEV-1"
+                },
+                "state": {
+                  "type": "dropdown",
+                  "value": "active"
+                }
+              },
+              "incident_type_uuid": "00000000-0000-0000-0000-000000000400",
+              "is_test": false,
+              "modified": "2026-11-24T07:00:00Z",
+              "non_datadog_creator": null,
+              "public_id": 13,
+              "resolved": null,
+              "severity": "SEV-1",
+              "state": "active",
+              "time_to_detect": 0,
+              "time_to_repair": 0,
+              "time_to_resolve": 1449165,
+              "title": "Payments delayed",
+              "visibility": "organization"
+            },
+            "id": "00000000-0000-0000-0000-000000000201",
+            "relationships": {
+              "commander_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000b2",
+                  "type": "users"
+                }
+              },
+              "created_by_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              },
+              "last_modified_by_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              }
+            },
+            "type": "incidents"
+          }
+        },
+        {
+          "data": {
+            "attributes": {
+              "case_id": null,
+              "created": "2026-11-23T15:00:00Z",
+              "customer_impact_scope": null,
+              "customer_impacted": false,
+              "declared": "2023-01-11T14:19:24Z",
+              "detected": "2023-01-11T14:19:24Z",
+              "fields": {
+                "severity": {
+                  "type": "dropdown",
+                  "value": "SEV-3"
+                },
+                "state": {
+                  "type": "dropdown",
+                  "value": "stable"
+                }
+              },
+              "incident_type_uuid": "00000000-0000-0000-0000-000000000400",
+              "is_test": false,
+              "modified": "2026-11-23T15:00:00Z",
+              "non_datadog_creator": null,
+              "public_id": 11,
+              "resolved": null,
+              "severity": "SEV-3",
+              "state": "stable",
+              "time_to_detect": 0,
+              "time_to_repair": 0,
+              "time_to_resolve": 1883020,
+              "title": "Search slow for some customers",
+              "visibility": "organization"
+            },
+            "id": "00000000-0000-0000-0000-000000000202",
+            "relationships": {
+              "commander_user": {
+                "data": null
+              },
+              "created_by_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              },
+              "last_modified_by_user": {
+                "data": {
+                  "id": "00000000-0000-0000-0000-0000000000a1",
+                  "type": "users"
+                }
+              }
+            },
+            "type": "incidents"
+          }
+        }
+      ],
+      "total": 3
+    },
+    "id": "00000000-0000-0000-0000-000000000300",
+    "type": "incidents_search_results"
+  },
+  "meta": {
+    "pagination": {
+      "next_offset": 3,
+      "offset": 0,
+      "size": 3
+    }
+  }
+}

@@ -4,6 +4,8 @@
 //!   * `dashboards [query]` — script filter `ddd`: dashboards and notebooks.
 //!   * `services [query]`   — script filter `dds`: APM services.
 //!   * `logs [query]`       — script filter `ddl`: Log Explorer link.
+//!   * `monitors [query]`   — script filter `ddm`: monitors.
+//!   * `incidents [query]`  — script filter `ddi`: active incidents.
 //!   * `refresh <kind> [env]` — background refresh of one cached source.
 //!   * `run <arg>`          — Run Script action: perform the selected item.
 
@@ -51,11 +53,13 @@ fn main() -> ExitCode {
         "dashboards" => output(filters::dashboards(&app, &arg)),
         "services" => output(filters::services(&app, &arg)),
         "logs" => output(filters::logs(&app, &arg)),
+        "monitors" => output(filters::monitors(&app, &arg)),
+        "incidents" => output(filters::incidents(&app, &arg)),
         "refresh" => refresh(&app, &arg, extra),
         "run" => run(&app, &arg),
         other => {
             eprintln!(
-                "unknown command: `{other}` (expected dashboards, services, logs, refresh or run)"
+                "unknown command: `{other}` (expected dashboards, services, logs, monitors, incidents, refresh or run)"
             );
 
             ExitCode::FAILURE

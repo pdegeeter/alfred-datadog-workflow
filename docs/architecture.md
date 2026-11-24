@@ -9,6 +9,8 @@ object in the Alfred workflow graph:
 | ------------------------------ | ---------------------------- | ------- | -------------- |
 | `alfred-dd dashboards [query]` | Script Filter                | `ddd`   | Dashboards and notebooks, ranked. |
 | `alfred-dd services [query]`   | Script Filter                | `dds`   | APM services of an env, with their links. |
+| `alfred-dd monitors [query]`   | Script Filter                | `ddm`   | Monitors of an env, alerting first. |
+| `alfred-dd incidents [query]`  | Script Filter                | `ddi`   | Active and stable incidents, most severe first. |
 | `alfred-dd logs [query]`       | Script Filter                | `ddl`   | Log Explorer link from the query (no API call); `service:` completions from the services cache. |
 | `alfred-dd refresh <kind> [env]` | — (spawned detached)       | —       | Refresh one cached source in the background (`env` for services). |
 | `alfred-dd run <arg>`          | Run Script (`action.script`) | —       | Decode the selected item's `arg` and perform it. |
@@ -130,6 +132,8 @@ flowchart TB
 | `dashboards` | `v1/dashboard` | One call, every dashboard; `deleted_at` ones skipped; `url` is the app path. |
 | `notebooks`  | `v1/notebooks?count=100&start=N&sort_field=modified&sort_dir=desc&include_cells=false` | Paged until a short page (at most 50 pages). |
 | `services`   | `v2/apm/services?filter[env]=<env>&start=<s>&end=<s>` (last 24 h, seconds) + `v2/services/definitions?page[size]=100&page[number]=N` | Union by name: APM names (`traced`) enriched with the catalog's team / languages / type (schema v2.x `dd-service`, or v3 `metadata.name`); catalog-only services kept. Cached per env. |
+| `monitors`   | `v1/monitor/search?per_page=1000&page=N` | Paged while `page + 1 < metadata.page_count`. Keeps `status` (Alert / Warn / No Data / OK), `type`, `tags`, `last_triggered_ts` (seconds). Env scope is applied when listing (tag `env:<env>` or no `env:` tag), not when fetching. |
+| `incidents`  | `v2/incidents/search?query=state%3A%28active%20OR%20stable%29&page[size]=100` | Items under `data.attributes.incidents[].data`; the commander's name comes from `data.attributes.facets.commander` (uuid → name) because `include=commander_user` returns no `included`. |
 
 ## Query syntax
 
@@ -144,7 +148,8 @@ flowchart TB
   queries.
 
 `ddd` reads `nb:` / `db:` filters to restrict the kind; their value is a
-search term. `dds` reads `team:`. `ddl` sends `passthrough` + `env:<env>`
+search term. `dds` reads `team:`; `ddm` reads `team:` and `service:`
+(every value must be one of the monitor's tags). `ddl` sends `passthrough` + `env:<env>`
 as the logs / traces query (`filters::search_query`); when the last token is
 `service:<prefix>`, it reads (never fetches) the services cache of the env
 and offers up to 9 completions (`autocomplete`, `valid: false`) that replace

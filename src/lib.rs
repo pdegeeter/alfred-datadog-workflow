@@ -14,6 +14,8 @@ pub mod config;
 pub mod dashboards;
 pub mod filters;
 pub mod frecency;
+pub mod incidents;
+pub mod monitors;
 pub mod notebooks;
 pub mod percent;
 pub mod pup;

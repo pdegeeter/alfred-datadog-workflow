@@ -68,6 +68,8 @@ export DD_ENV=prod   # your env; DD_SITE defaults to datadoghq.eu
 $B dashboards "checkout -4h" | python3 -m json.tool   # ddd
 $B services "checkout env:staging" | python3 -m json.tool   # dds
 $B logs "service:check status:error -15m" | python3 -m json.tool   # ddl
+$B monitors "team:payments" | python3 -m json.tool          # ddm
+$B incidents | python3 -m json.tool                         # ddi
 $B refresh dashboards                                  # what a stale cache spawns
 
 # Actions take the `arg` of an item (see docs/architecture.md):
@@ -99,6 +101,8 @@ items and anonymized (neutral names such as `checkout-api`, `team:payments`,
 | `tests/action_test.rs`   | `arg` round-trip of every action, invalid args, execution (frecency then open, clipboard, Alfred search, refresh counts and errors). |
 | `tests/query_test.rs`    | Terms, `env:` (override, being typed), time suffixes (only last), passthrough `key:value`, URLs and times not filters. |
 | `tests/urls_test.rs`     | Every URL builder on EU / US / US3 sites, time ranges (live / paused), encoding, blank searches, site normalization, Datadog hosts. |
+| `tests/monitors_test.rs` | Page parsing, pagination by `page_count`, state order, env scope (untagged always in), `team:` / `service:` / name filters, frecency within a state, item actions and icon, errors. |
+| `tests/incidents_test.rs` | Parsing, commander from the facets, active + stable query, severity then newest, title filter, "No active incident". |
 | `tests/logs_test.rs`     | Log Explorer / Traces Explorer / copy links with passthrough, `env:` and time range, no pup call, `service:` completions from the per-env cache (in place, substring, none when complete). |
 | `tests/services_test.rs` | APM and catalog fixtures, v2.2 / v3 schemas, union by name, APM window and catalog pagination argv, ordering, `team:`, every modifier with `env:` and time range, per-env cache and background refresh, errors. |
 | `tests/dashboards_test.rs` | Dashboards and notebooks fixtures, deleted dashboards, notebook pagination, ranking (accents, `nb:` / `db:`, frecency), every modifier, empty result, stale cache ⇒ detached refresh + `rerun`, pup error items. |
