@@ -1,0 +1,6 @@
+/target
+/workflow/alfred-dd
+*.alfredworkflow
+/workflow/prefs.plist
+/.claude/worktrees
+/CLAUDE.local.md
