@@ -39,11 +39,13 @@ cargo fmt --all                           # format
 ./scripts/build.sh    # build release binary + package the .alfredworkflow
 ./scripts/deploy.sh   # build + update the installed workflow in place (imports it the first time)
 ./scripts/deploy.sh --import  # build + open the .alfredworkflow to import it
-./scripts/icon.sh     # regenerate workflow/icon.png from a macOS system icon
+./scripts/icon.sh     # regenerate workflow/icon.png from the Datadog logo
 ```
 
-The workflow icon (`workflow/icon.png`) is a committed asset converted from a
-macOS system icon with `sips`. It is not regenerated at build time.
+The workflow icon (`workflow/icon.png`) is a committed asset: the Datadog
+logo, downloaded unmodified from the DataDog GitHub organization's avatar
+(`https://github.com/DataDog.png`) and converted with `sips`. It is not
+regenerated at build time, so CI needs no network for it.
 
 `scripts/deploy.sh` finds the installed workflow in Alfred's preferences
 (`current` in `~/Library/Application Support/Alfred/prefs.json`, or
@@ -118,7 +120,7 @@ items and anonymized (neutral names such as `checkout-api`, `team:payments`,
 ├── tests/                  Integration tests + shared FakeRunner
 ├── workflow/
 │   ├── info.plist          Alfred workflow definition (the binary is added at build time)
-│   └── icon.png            Workflow icon, converted from a macOS system icon
+│   └── icon.png            Workflow icon, the Datadog logo
 ├── scripts/
 │   ├── build.sh            Build + package the .alfredworkflow
 │   ├── deploy.sh           Build + install into Alfred

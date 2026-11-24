@@ -163,3 +163,7 @@ works, and [docs/release.md](docs/release.md) for the release process.
 ## License
 
 MIT
+
+Datadog and the Datadog logo are trademarks of Datadog, Inc. This is an
+independent project, not affiliated with or endorsed by Datadog; the logo is
+used unmodified as the workflow icon to identify the service it opens.

@@ -19,7 +19,8 @@ use crate::services::Service;
 use crate::time;
 use crate::urls::{Urls, Window};
 
-/// macOS system icons, so the workflow ships no artwork of its own.
+/// Item icons: macOS system icons, so states (alert, warning, no data) stay
+/// distinguishable from the workflow's own Datadog icon.
 pub mod icons {
     const DIR: &str = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources";
 

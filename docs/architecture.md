@@ -219,5 +219,6 @@ site are moved to `DD_SITE` (`Urls::on_this_site`).
 - **No `uid` on items**: Alfred would re-sort by its own usage knowledge.
   Filtering and ordering happen in Rust (`alfredfiltersresults = false`).
 - **Script filters never hard-fail**: errors become an invalid Alfred item.
-- **No artwork**: item icons are macOS system icons (`alfred::icons`), the
-  workflow icon is converted from one (`scripts/icon.sh`).
+- **Icons**: the workflow icon is the unmodified Datadog logo (the DataDog
+  GitHub organization's avatar, fetched by `scripts/icon.sh`); item icons are
+  macOS system icons (`alfred::icons`), so states stay distinguishable.

@@ -123,8 +123,10 @@ new logic pure and route any new spawn through it.
 - **Keywords are fixed**; `tests/plist_test.rs` pins the keyword → subcommand
   map, the modifier connections, the readme and the `DD_SITE` / `DD_ENV`
   defaults: update it with any keyword, modifier or configuration change.
-- **No artwork, no logo**: item icons and `workflow/icon.png` come from macOS
-  system icons (`scripts/icon.sh`). Never add the Datadog logo.
+- **Icons**: `workflow/icon.png` is the Datadog logo, unmodified, fetched from
+  the DataDog GitHub organization's avatar by `scripts/icon.sh` (committed, not
+  rebuilt). Keep it unmodified and keep the trademark notice in `README.md`.
+  Item icons are macOS system icons (`alfred::icons`).
 - **Public repo**: fixtures and docs use neutral names (`checkout-api`,
   `team:payments`, `alice@example.com`); never commit real service, team,
   dashboard or person names.
