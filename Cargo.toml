@@ -1,0 +1,34 @@
+[package]
+name = "alfred-dd"
+version = "0.1.0"
+edition = "2021"
+description = "Alfred workflow to navigate Datadog dashboards, notebooks, services, monitors, logs and incidents"
+license = "MIT"
+repository = "https://github.com/pdegeeter/alfred-datadog-workflow"
+publish = false
+
+[lib]
+name = "alfred_dd"
+path = "src/lib.rs"
+
+[[bin]]
+name = "alfred-dd"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+powerpack = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+# Optimize the binary that ships inside the .alfredworkflow: small and fast to
+# start, since Alfred invokes it on every keystroke.
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
