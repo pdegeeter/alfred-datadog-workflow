@@ -4,7 +4,8 @@
 //! [`Action`] encoded in its `arg`; the one connected Run Script decodes and
 //! performs it. No `uid` is set: Alfred would otherwise re-sort items by its
 //! own usage knowledge and override the order computed here (match quality,
-//! frecency, state).
+//! frecency, state). No `icon` either: every item shows the workflow's
+//! Datadog icon; the state (Alert, SEV-1…) is in the subtitle.
 
 use powerpack::{Item, Key, Modifier};
 
@@ -19,62 +20,9 @@ use crate::services::Service;
 use crate::time;
 use crate::urls::{Urls, Window};
 
-/// Item icons: macOS system icons, so states (alert, warning, no data) stay
-/// distinguishable from the workflow's own Datadog icon.
-pub mod icons {
-    const DIR: &str = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources";
-
-    fn system(name: &str) -> powerpack::Icon {
-        powerpack::Icon::with_image(format!("{DIR}/{name}.icns"))
-    }
-
-    pub fn error() -> powerpack::Icon {
-        system("AlertNoteIcon")
-    }
-
-    pub fn alert() -> powerpack::Icon {
-        system("AlertStopIcon")
-    }
-
-    pub fn warning() -> powerpack::Icon {
-        system("AlertCautionBadgeIcon")
-    }
-
-    pub fn unknown() -> powerpack::Icon {
-        system("GenericQuestionMarkIcon")
-    }
-
-    pub fn dashboard() -> powerpack::Icon {
-        system("GenericWindowIcon")
-    }
-
-    pub fn notebook() -> powerpack::Icon {
-        system("GenericStationeryIcon")
-    }
-
-    pub fn service() -> powerpack::Icon {
-        system("GenericNetworkIcon")
-    }
-
-    pub fn link() -> powerpack::Icon {
-        system("GenericURLIcon")
-    }
-
-    pub fn document() -> powerpack::Icon {
-        system("GenericDocumentIcon")
-    }
-
-    pub fn refresh() -> powerpack::Icon {
-        system("Clock")
-    }
-}
-
 /// Item shown in place of a list when something went wrong.
 pub fn error_item(title: &str, message: &str) -> Item {
-    Item::new(title)
-        .subtitle(message)
-        .valid(false)
-        .icon(icons::error())
+    Item::new(title).subtitle(message).valid(false)
 }
 
 /// Item that runs `action` on <kbd>↩</kbd>.
@@ -130,7 +78,6 @@ pub fn refresh_item(targets: &[Target], fetched_ms: Option<i64>, now_ms: i64) ->
             targets: targets.to_vec(),
         },
     )
-    .icon(icons::refresh())
 }
 
 /// `ddd`: one item per dashboard or notebook.
@@ -148,15 +95,9 @@ pub fn board_items(
         .map(|board| {
             let url = board.url(urls);
             let key = board.frecency_key();
-            let (label, icon, list_url) = match board.kind {
-                BoardKind::Dashboard => (
-                    "Dashboard",
-                    icons::dashboard(),
-                    urls.dashboard_search(search),
-                ),
-                BoardKind::Notebook => {
-                    ("Notebook", icons::notebook(), urls.notebook_search(search))
-                }
+            let (label, list_url) = match board.kind {
+                BoardKind::Dashboard => ("Dashboard", urls.dashboard_search(search)),
+                BoardKind::Notebook => ("Notebook", urls.notebook_search(search)),
             };
             let label = match &board.detail {
                 Some(detail) => format!("{label} ({detail})"),
@@ -183,7 +124,6 @@ pub fn board_items(
                     }
                     .to_arg(),
                 )
-                .icon(icon)
                 .copy_text(url.clone())
                 .modifier(modifier(
                     &[Key::Command],
@@ -245,7 +185,6 @@ pub fn service_items(services: Vec<Service>, urls: &Urls, env: &str, window: Win
                     }
                     .to_arg(),
                 )
-                .icon(icons::service())
                 .copy_text(name.clone())
                 .modifier(modifier(
                     &[Key::Command],
@@ -314,13 +253,6 @@ pub fn monitor_items(monitors: Vec<Monitor>, urls: &Urls, search: &str, now_ms: 
 
             subtitle.retain(|part| !part.is_empty());
 
-            let icon = match monitor.status.as_str() {
-                "Alert" => icons::alert(),
-                "Warn" => icons::warning(),
-                "No Data" => icons::unknown(),
-                _ => icons::document(),
-            };
-
             Item::new(monitor.name.clone())
                 .subtitle(subtitle.join(" · "))
                 .arg(
@@ -330,7 +262,6 @@ pub fn monitor_items(monitors: Vec<Monitor>, urls: &Urls, search: &str, now_ms: 
                     }
                     .to_arg(),
                 )
-                .icon(icon)
                 .copy_text(url.clone())
                 .modifier(modifier(
                     &[Key::Command],
@@ -381,7 +312,6 @@ pub fn incident_items(incidents: Vec<Incident>, urls: &Urls, now_ms: i64) -> Vec
                     }
                     .to_arg(),
                 )
-                .icon(icons::alert())
                 .copy_text(url.clone())
                 .modifier(modifier(
                     &[Key::Option],
@@ -395,21 +325,19 @@ pub fn incident_items(incidents: Vec<Incident>, urls: &Urls, now_ms: i64) -> Vec
 /// `dd`: the item for something found in the clipboard (or the query).
 /// ↩ open · ⌥ copy URL.
 pub fn clip_item(clip: &Clip, urls: &Urls) -> Item {
-    let (title, key, url, icon) = match clip {
-        Clip::Trace(id) => (format!("Trace {id}"), None, urls.trace(id), icons::link()),
+    let (title, key, url) = match clip {
+        Clip::Trace(id) => (format!("Trace {id}"), None, urls.trace(id)),
         Clip::Monitor(id) => (
             format!("Monitor #{id}"),
             Some(format!("monitor:{id}")),
             urls.monitor(*id),
-            icons::document(),
         ),
         Clip::Incident(id) => (
             format!("Incident #{id}"),
             Some(format!("incident:{id}")),
             urls.incident(*id),
-            icons::alert(),
         ),
-        Clip::Url(url) => ("Datadog link".to_owned(), None, url.clone(), icons::link()),
+        Clip::Url(url) => ("Datadog link".to_owned(), None, url.clone()),
     };
     let action = match key {
         Some(key) => Action::Open {
@@ -422,7 +350,6 @@ pub fn clip_item(clip: &Clip, urls: &Urls) -> Item {
     Item::new(title)
         .subtitle(format!("From the clipboard · {url}"))
         .arg(action.to_arg())
-        .icon(icon)
         .copy_text(url.clone())
         .modifier(modifier(
             &[Key::Option],
@@ -484,7 +411,6 @@ pub fn logs_item(urls: &Urls, search: &str, window: Window, range_ms: i64) -> It
             duration(range_ms)
         ))
         .arg(Action::OpenUrl { url: url.clone() }.to_arg())
-        .icon(icons::document())
         .copy_text(url.clone())
         .modifier(modifier(
             &[Key::Command],
@@ -506,7 +432,6 @@ pub fn completion_item(title: &str, completion: &str) -> Item {
         .subtitle("↩ or ⇥ to complete the query")
         .autocomplete(completion)
         .valid(false)
-        .icon(icons::service())
 }
 
 /// `15m`, `1h`, `7d`, `90m`…
@@ -535,5 +460,4 @@ pub fn no_board_item(urls: &Urls, search: &str) -> Item {
             url: urls.dashboard_search(search),
         },
     )
-    .icon(icons::dashboard())
 }

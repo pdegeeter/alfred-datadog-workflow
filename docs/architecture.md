@@ -220,5 +220,6 @@ site are moved to `DD_SITE` (`Urls::on_this_site`).
   Filtering and ordering happen in Rust (`alfredfiltersresults = false`).
 - **Script filters never hard-fail**: errors become an invalid Alfred item.
 - **Icons**: the workflow icon is the unmodified Datadog logo (the DataDog
-  GitHub organization's avatar, fetched by `scripts/icon.sh`); item icons are
-  macOS system icons (`alfred::icons`), so states stay distinguishable.
+  GitHub organization's avatar, fetched by `scripts/icon.sh`). Items set no
+  `icon`, so every item of every keyword shows it; states (Alert, SEV-1…)
+  are in the subtitle.

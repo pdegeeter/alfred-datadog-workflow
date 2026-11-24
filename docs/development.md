@@ -105,7 +105,8 @@ items and anonymized (neutral names such as `checkout-api`, `team:payments`,
 | `tests/query_test.rs`    | Terms, `env:` (override, being typed), time suffixes (only last), passthrough `key:value`, URLs and times not filters. |
 | `tests/urls_test.rs`     | Every URL builder on EU / US / US3 sites, time ranges (live / paused), encoding, blank searches, site normalization, Datadog hosts. |
 | `tests/clipboard_test.rs` | Detection table (trace 128 / 64-bit, ambiguous numbers, labelled ids, monitor / incident / other URLs across sites), rejections, `dd` items, query before clipboard, single clipboard read, unreadable clipboard. |
-| `tests/monitors_test.rs` | Page parsing, pagination by `page_count`, state order, env scope (untagged always in), `team:` / `service:` / name filters, frecency within a state, item actions and icon, errors. |
+| `tests/monitors_test.rs` | Page parsing, pagination by `page_count`, state order, env scope (untagged always in), `team:` / `service:` / name filters, frecency within a state, item actions, errors. |
+| `tests/alfred_test.rs`   | Every keyword: no item sets an `icon` (all show the Datadog workflow icon) or a `uid`. |
 | `tests/incidents_test.rs` | Parsing, commander from the facets, active + stable query, severity then newest, title filter, "No active incident". |
 | `tests/logs_test.rs`     | Log Explorer / Traces Explorer / copy links with passthrough, `env:` and time range, no pup call, `service:` completions from the per-env cache (in place, substring, none when complete). |
 | `tests/services_test.rs` | APM and catalog fixtures, v2.2 / v3 schemas, union by name, APM window and catalog pagination argv, ordering, `team:`, every modifier with `env:` and time range, per-env cache and background refresh, errors. |

@@ -173,10 +173,6 @@ fn item_actions() {
         item["mods"]["alt"]["arg"],
         "copy https://app.datadoghq.eu/monitors/101"
     );
-    assert!(item["icon"]["path"]
-        .as_str()
-        .unwrap()
-        .ends_with("AlertStopIcon.icns"));
 }
 
 #[test]

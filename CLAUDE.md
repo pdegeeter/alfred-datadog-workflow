@@ -104,7 +104,7 @@ new logic pure and route any new spawn through it.
   first, then reads the clipboard once; never log the clipboard.
 - `action.rs` — the `arg` protocol (`Action::to_arg` / `Action::parse`) and
   `execute`.
-- `alfred.rs` — item builders; item icons are macOS system icons.
+- `alfred.rs` — item builders; items set no `icon`, so every one shows the workflow's Datadog icon.
 
 ## Conventions that matter here
 
@@ -126,7 +126,8 @@ new logic pure and route any new spawn through it.
 - **Icons**: `workflow/icon.png` is the Datadog logo, unmodified, fetched from
   the DataDog GitHub organization's avatar by `scripts/icon.sh` (committed, not
   rebuilt). Keep it unmodified and keep the trademark notice in `README.md`.
-  Item icons are macOS system icons (`alfred::icons`).
+  Items set no `icon` (every item, errors included, shows the workflow icon;
+  `tests/alfred_test.rs` checks it): states live in the subtitle.
 - **Public repo**: fixtures and docs use neutral names (`checkout-api`,
   `team:payments`, `alice@example.com`); never commit real service, team,
   dashboard or person names.
