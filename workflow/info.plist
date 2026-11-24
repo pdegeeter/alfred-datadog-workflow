@@ -8,6 +8,69 @@
 	<string>Tools</string>
 	<key>connections</key>
 	<dict>
+		<key>A1000000-0000-0000-0000-0000000000A1</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>1048576</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>524288</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>262144</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>131072</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>1179648</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>A2000000-0000-0000-0000-0000000000A2</key>
 		<array>
 			<dict>
@@ -363,6 +426,55 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>keyword</key>
+				<string>dd</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Reading clipboard…</string>
+				<key>script</key>
+				<string>./alfred-dd home "$1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Clipboard ID or URL first, then every Datadog keyword</string>
+				<key>title</key>
+				<string>Datadog</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A1000000-0000-0000-0000-0000000000A1</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<false/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
 				<string>ddd</string>
 				<key>queuedelaycustom</key>
 				<integer>3</integer>
@@ -640,6 +752,7 @@
 	<key>readme</key>
 	<string>Navigate Datadog from Alfred. Read-only: every action opens a URL, copies text or refreshes a local cache.
 
+- dd — clipboard trace / monitor / incident ID or Datadog URL first, then every keyword
 - ddd — dashboards and notebooks (nb: / db: to restrict; ⌘ with the time range, ⌥ copy URL, ⇧ search the dashboard list)
 - dds — APM services (↩ service page, ⌘ logs, ⌥ traces, ⌃ error tracking, ⇧ monitors, ⇧⌘ copy name)
 - ddm — monitors, alerting first (⌘ monitor list search, ⌥ copy URL)
@@ -652,54 +765,61 @@ Requires pup (brew install datadog-labs/pack/pup) logged in with `pup auth login
 </string>
 	<key>uidata</key>
 	<dict>
-		<key>A2000000-0000-0000-0000-0000000000A2</key>
+		<key>A1000000-0000-0000-0000-0000000000A1</key>
 		<dict>
 			<key>xpos</key>
 			<integer>60</integer>
 			<key>ypos</key>
 			<integer>30</integer>
 		</dict>
-		<key>A3000000-0000-0000-0000-0000000000A3</key>
+		<key>A2000000-0000-0000-0000-0000000000A2</key>
 		<dict>
 			<key>xpos</key>
 			<integer>60</integer>
 			<key>ypos</key>
 			<integer>160</integer>
 		</dict>
-		<key>A4000000-0000-0000-0000-0000000000A4</key>
+		<key>A3000000-0000-0000-0000-0000000000A3</key>
 		<dict>
 			<key>xpos</key>
 			<integer>60</integer>
 			<key>ypos</key>
 			<integer>290</integer>
 		</dict>
-		<key>A5000000-0000-0000-0000-0000000000A5</key>
+		<key>A4000000-0000-0000-0000-0000000000A4</key>
 		<dict>
 			<key>xpos</key>
 			<integer>60</integer>
 			<key>ypos</key>
 			<integer>420</integer>
 		</dict>
-		<key>A6000000-0000-0000-0000-0000000000A6</key>
+		<key>A5000000-0000-0000-0000-0000000000A5</key>
 		<dict>
 			<key>xpos</key>
 			<integer>60</integer>
 			<key>ypos</key>
 			<integer>550</integer>
 		</dict>
+		<key>A6000000-0000-0000-0000-0000000000A6</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>680</integer>
+		</dict>
 		<key>E0000000-0000-0000-0000-0000000000E0</key>
 		<dict>
 			<key>xpos</key>
 			<integer>360</integer>
 			<key>ypos</key>
-			<integer>290</integer>
+			<integer>355</integer>
 		</dict>
 		<key>F0000000-0000-0000-0000-0000000000F0</key>
 		<dict>
 			<key>xpos</key>
 			<integer>600</integer>
 			<key>ypos</key>
-			<integer>290</integer>
+			<integer>355</integer>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>

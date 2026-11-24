@@ -9,6 +9,7 @@ use powerpack::{Item, Output};
 use crate::alfred;
 use crate::app::App;
 use crate::cache::{Kind, Loaded, Store, Target};
+use crate::clipboard;
 use crate::dashboards::{Board, BoardKind};
 use crate::frecency::Frecency;
 use crate::incidents::{self, Incident};
@@ -51,6 +52,31 @@ fn frecency(app: &App) -> Frecency {
 /// Newest first, unknown dates last.
 fn newest_first(a: Option<i64>, b: Option<i64>) -> Ordering {
     b.unwrap_or(i64::MIN).cmp(&a.unwrap_or(i64::MIN))
+}
+
+/// `dd`: what the query — or else the clipboard, read once — points at
+/// (trace, monitor, incident, Datadog URL), then every keyword. The
+/// clipboard is never logged.
+pub fn home(app: &App, input: &str) -> Listing {
+    let urls = app.urls();
+    let mut clips = clipboard::detect(input, &urls);
+
+    if clips.is_empty() {
+        let pasted = app.runner.run(clipboard::PBPASTE, &[]).unwrap_or_default();
+        clips = clipboard::detect(&pasted, &urls);
+    }
+
+    let carried = if clips.is_empty() { input } else { "" };
+    let mut items: Vec<Item> = clips
+        .iter()
+        .map(|clip| alfred::clip_item(clip, &urls))
+        .collect();
+    items.extend(alfred::keyword_items(carried));
+
+    Listing {
+        items,
+        rerun: false,
+    }
 }
 
 /// `ddd`: dashboards and notebooks. `nb:` restricts to notebooks, `db:` to

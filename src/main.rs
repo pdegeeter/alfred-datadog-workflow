@@ -1,6 +1,7 @@
 //! `alfred-dd` — Alfred workflow entry point.
 //!
 //! Subcommands, dispatched by Alfred:
+//!   * `home [query]`       — script filter `dd`: clipboard ID / URL, keywords.
 //!   * `dashboards [query]` — script filter `ddd`: dashboards and notebooks.
 //!   * `services [query]`   — script filter `dds`: APM services.
 //!   * `logs [query]`       — script filter `ddl`: Log Explorer link.
@@ -50,6 +51,7 @@ fn main() -> ExitCode {
     let app = App::new(&runner, config, pup::locate(), exe, now_ms());
 
     match command.as_str() {
+        "home" => output(filters::home(&app, &arg)),
         "dashboards" => output(filters::dashboards(&app, &arg)),
         "services" => output(filters::services(&app, &arg)),
         "logs" => output(filters::logs(&app, &arg)),
@@ -59,7 +61,7 @@ fn main() -> ExitCode {
         "run" => run(&app, &arg),
         other => {
             eprintln!(
-                "unknown command: `{other}` (expected dashboards, services, logs, monitors, incidents, refresh or run)"
+                "unknown command: `{other}` (expected home, dashboards, services, logs, monitors, incidents, refresh or run)"
             );
 
             ExitCode::FAILURE

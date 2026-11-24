@@ -20,7 +20,8 @@ const MODIFIERS: [(u64, &str); 6] = [
 ];
 
 /// Every keyword and the command line it runs.
-const KEYWORDS: [(&str, &str); 5] = [
+const KEYWORDS: [(&str, &str); 6] = [
+    ("dd", "./alfred-dd home \"$1\""),
     ("ddd", "./alfred-dd dashboards \"$1\""),
     ("dds", "./alfred-dd services \"$1\""),
     ("ddm", "./alfred-dd monitors \"$1\""),

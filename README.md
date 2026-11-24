@@ -31,6 +31,24 @@ Every keyword shares the same syntax:
   hour, live).
 - other **`key:value`** tokens are kept verbatim for logs / traces queries.
 
+### Start here — `dd`
+
+Reads the clipboard once and, if it holds something Datadog, shows it first:
+
+| Clipboard | Item |
+| --------- | ---- |
+| 32 hex characters | the trace (128-bit id) |
+| 1–20 digits | the trace (64-bit id) **and** the monitor with that id |
+| `monitor 123`, `monitor:123`, a monitor URL | the monitor |
+| `#12`, `incident 12`, an incident URL | the incident |
+| any other `app.datadoghq.*` URL | that page, on your `DD_SITE` |
+
+An ID typed after `dd` (`dd #12`) wins over the clipboard. Then every keyword
+is listed; <kbd>↩</kbd> reopens Alfred on it, carrying what you typed.
+
+- <kbd>↩</kbd> open it
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+
 ### Dashboards and notebooks — `ddd`
 
 Lists your dashboards and notebooks. `nb:` restricts to notebooks, `db:` to

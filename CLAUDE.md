@@ -19,7 +19,7 @@ never writes to Datadog: every action opens a URL, copies text or refreshes a
 local cache. A single binary, `alfred-dd`, backs every object of the Alfred
 graph:
 
-- **Script Filters**, one per keyword: `dashboards` (`ddd`), `services`
+- **Script Filters**, one per keyword: `home` (`dd`), `dashboards` (`ddd`), `services`
   (`dds`), `monitors` (`ddm`), `logs` (`ddl`, no API call), `incidents`
   (`ddi`). They print Alfred JSON (`filters.rs`), with `rerun` while a
   background refresh runs.
@@ -54,7 +54,8 @@ cargo build && DD_ENV=prod ./target/debug/alfred-dd dashboards checkout | python
 ## Architecture
 
 **Everything is a pure function except one trait.** Every process spawn —
-`pup` (Datadog), `osascript` (clipboard write, Alfred) and `/usr/bin/open` —
+`pup` (Datadog), `osascript` (clipboard write, Alfred), `/usr/bin/pbpaste`
+(clipboard read) and `/usr/bin/open` —
 goes through
 `runner::CommandRunner` (`SystemRunner` in prod). Its `spawn_detached` starts a
 background process without waiting for it. Tests inject `FakeRunner`
@@ -98,6 +99,9 @@ new logic pure and route any new spawn through it.
   `sources.rs` — fetch
   (pagination), cache key, `load` / `refresh` per `cache::Target` (kind + env
   for services); `filters.rs` — one function per script filter.
+- `clipboard.rs` — pure detection of trace / monitor / incident ids and
+  Datadog URLs (ambiguous decimal ⇒ trace and monitor). `dd` checks its query
+  first, then reads the clipboard once; never log the clipboard.
 - `action.rs` — the `arg` protocol (`Action::to_arg` / `Action::parse`) and
   `execute`.
 - `alfred.rs` — item builders; item icons are macOS system icons.

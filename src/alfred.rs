@@ -10,6 +10,7 @@ use powerpack::{Item, Key, Modifier};
 
 use crate::action::Action;
 use crate::cache::{Kind, Target};
+use crate::clipboard::Clip;
 use crate::dashboards::{Board, BoardKind};
 use crate::incidents::Incident;
 use crate::monitors::Monitor;
@@ -386,6 +387,86 @@ pub fn incident_items(incidents: Vec<Incident>, urls: &Urls, now_ms: i64) -> Vec
                     "Copy the URL",
                     &Action::Copy { text: url },
                 ))
+        })
+        .collect()
+}
+
+/// `dd`: the item for something found in the clipboard (or the query).
+/// ↩ open · ⌥ copy URL.
+pub fn clip_item(clip: &Clip, urls: &Urls) -> Item {
+    let (title, key, url, icon) = match clip {
+        Clip::Trace(id) => (format!("Trace {id}"), None, urls.trace(id), icons::link()),
+        Clip::Monitor(id) => (
+            format!("Monitor #{id}"),
+            Some(format!("monitor:{id}")),
+            urls.monitor(*id),
+            icons::document(),
+        ),
+        Clip::Incident(id) => (
+            format!("Incident #{id}"),
+            Some(format!("incident:{id}")),
+            urls.incident(*id),
+            icons::alert(),
+        ),
+        Clip::Url(url) => ("Datadog link".to_owned(), None, url.clone(), icons::link()),
+    };
+    let action = match key {
+        Some(key) => Action::Open {
+            key,
+            url: url.clone(),
+        },
+        None => Action::OpenUrl { url: url.clone() },
+    };
+
+    Item::new(title)
+        .subtitle(format!("From the clipboard · {url}"))
+        .arg(action.to_arg())
+        .icon(icon)
+        .copy_text(url.clone())
+        .modifier(modifier(
+            &[Key::Option],
+            "Copy the URL",
+            &Action::Copy { text: url },
+        ))
+}
+
+/// `dd`: one item per keyword; ↩ reopens Alfred on it, carrying `query`.
+pub fn keyword_items(query: &str) -> Vec<Item> {
+    const KEYWORDS: [(&str, &str, &str); 5] = [
+        (
+            "ddd",
+            "Dashboards & notebooks",
+            "nb: / db: to restrict · -4h time range",
+        ),
+        (
+            "dds",
+            "APM services",
+            "Service page, logs, traces, errors, monitors · env:<env>",
+        ),
+        ("ddm", "Monitors", "Alerting first · team:<t> service:<s>"),
+        (
+            "ddl",
+            "Logs",
+            "Log Explorer query · service:<prefix> completes",
+        ),
+        ("ddi", "Incidents", "Active incidents, most severe first"),
+    ];
+
+    KEYWORDS
+        .into_iter()
+        .map(|(keyword, title, subtitle)| {
+            let typed = format!("{keyword} {}", query.trim());
+            let typed = if query.trim().is_empty() {
+                format!("{keyword} ")
+            } else {
+                format!("{} ", typed.trim_end())
+            };
+
+            action_item(
+                format!("{keyword} — {title}"),
+                subtitle,
+                &Action::Search { query: typed },
+            )
         })
         .collect()
 }

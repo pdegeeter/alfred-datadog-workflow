@@ -7,6 +7,7 @@ object in the Alfred workflow graph:
 
 | Subcommand                     | Alfred object                | Keyword | Responsibility |
 | ------------------------------ | ---------------------------- | ------- | -------------- |
+| `alfred-dd home [query]`       | Script Filter                | `dd`    | What the query or clipboard points at, then every keyword. |
 | `alfred-dd dashboards [query]` | Script Filter                | `ddd`   | Dashboards and notebooks, ranked. |
 | `alfred-dd services [query]`   | Script Filter                | `dds`   | APM services of an env, with their links. |
 | `alfred-dd monitors [query]`   | Script Filter                | `ddm`   | Monitors of an env, alerting first. |
@@ -154,6 +155,25 @@ as the logs / traces query (`filters::search_query`); when the last token is
 `service:<prefix>`, it reads (never fetches) the services cache of the env
 and offers up to 9 completions (`autocomplete`, `valid: false`) that replace
 that token in place.
+
+## Clipboard detection
+
+`dd` first runs `clipboard::detect` on its query; only when that finds
+nothing does it read the clipboard, once, with `/usr/bin/pbpaste` (through
+`CommandRunner`). The text is trimmed and never logged; texts over 2048 chars,
+or with spaces unless labelled (`monitor 101`), are ignored.
+
+| Text | Result |
+| ---- | ------ |
+| Datadog app URL `/monitors/<n>` / `/incidents/<n>` | `Monitor(n)` / `Incident(n)` |
+| other Datadog app URL (any site) | `Url`, moved to `DD_SITE` |
+| `#<n>`, `incident[ :#]<n>` | `Incident(n)` |
+| `monitor[_id][ :#-=]<n>` | `Monitor(n)` |
+| 32 hex chars | `Trace` (lowercased) |
+| 1–20 digits | `Trace` and, if it fits a `u64`, `Monitor` |
+
+Keyword items reopen Alfred with the `search` verb (Alfred's `autocomplete`
+cannot switch keywords).
 
 ## URLs
 
