@@ -3,7 +3,7 @@
 mod common;
 
 use alfred_dd::action::{self, Action, OPEN, OSASCRIPT};
-use alfred_dd::cache::{Key, Kind, Store};
+use alfred_dd::cache::{Key, Kind, Store, Target};
 use alfred_dd::dashboards::Board;
 use alfred_dd::frecency::Frecency;
 use common::{app, fixture, FakeRunner, NOW_MS, PUP};
@@ -16,7 +16,7 @@ fn all_actions() -> Vec<Action> {
                 .to_owned(),
         },
         Action::Refresh {
-            kinds: vec![Kind::Dashboards, Kind::Notebooks],
+            targets: vec![Target::new(Kind::Dashboards), Target::new(Kind::Notebooks)],
         },
         Action::OpenUrl {
             url: "https://app.datadoghq.eu/logs?query=service%3Acheckout-api".to_owned(),
@@ -117,7 +117,18 @@ fn search_asks_alfred_to_show_the_query() {
 #[test]
 fn refresh_rejects_unknown_sources() {
     assert!(Action::parse("refresh dashboards nope").is_err());
+    assert!(Action::parse("refresh services:").is_err());
     assert!(Action::parse("refresh").is_err());
+}
+
+#[test]
+fn refresh_carries_the_env_of_services() {
+    let action = Action::Refresh {
+        targets: vec![Target::services("staging"), Target::new(Kind::Monitors)],
+    };
+
+    assert_eq!(action.to_arg(), "refresh services:staging monitors");
+    assert_eq!(Action::parse(&action.to_arg()).unwrap(), action);
 }
 
 #[test]
@@ -156,7 +167,7 @@ fn refresh_fetches_now_and_reports_counts() {
     let message = action::execute(
         &app,
         &Action::Refresh {
-            kinds: vec![Kind::Dashboards, Kind::Notebooks],
+            targets: vec![Target::new(Kind::Dashboards), Target::new(Kind::Notebooks)],
         },
     )
     .unwrap();
@@ -185,7 +196,7 @@ fn refresh_surfaces_pup_errors() {
     let err = action::execute(
         &app,
         &Action::Refresh {
-            kinds: vec![Kind::Dashboards],
+            targets: vec![Target::new(Kind::Dashboards)],
         },
     )
     .unwrap_err();

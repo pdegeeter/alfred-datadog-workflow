@@ -2,7 +2,8 @@
 //!
 //! Subcommands, dispatched by Alfred:
 //!   * `dashboards [query]` — script filter `ddd`: dashboards and notebooks.
-//!   * `refresh <kind>`     — background refresh of one cached source.
+//!   * `services [query]`   — script filter `dds`: APM services.
+//!   * `refresh <kind> [env]` — background refresh of one cached source.
 //!   * `run <arg>`          — Run Script action: perform the selected item.
 
 use std::env;
@@ -12,7 +13,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use alfred_dd::action::{self, Action};
 use alfred_dd::app::App;
-use alfred_dd::cache::Kind;
+use alfred_dd::cache::{Kind, Target};
 use alfred_dd::config::Config;
 use alfred_dd::filters::{self, Listing};
 use alfred_dd::pup;
@@ -23,6 +24,7 @@ fn main() -> ExitCode {
     let mut args = env::args().skip(1);
     let command = args.next().unwrap_or_default();
     let arg = args.next().unwrap_or_default();
+    let extra = args.next();
     let runner = SystemRunner;
 
     let config = match Config::from_env() {
@@ -46,10 +48,11 @@ fn main() -> ExitCode {
 
     match command.as_str() {
         "dashboards" => output(filters::dashboards(&app, &arg)),
-        "refresh" => refresh(&app, &arg),
+        "services" => output(filters::services(&app, &arg)),
+        "refresh" => refresh(&app, &arg, extra),
         "run" => run(&app, &arg),
         other => {
-            eprintln!("unknown command: `{other}` (expected dashboards, refresh or run)");
+            eprintln!("unknown command: `{other}` (expected dashboards, services, refresh or run)");
 
             ExitCode::FAILURE
         }
@@ -75,15 +78,20 @@ fn output(listing: Listing) -> ExitCode {
     }
 }
 
-/// Background refresh started by a script filter serving a stale cache.
-fn refresh(app: &App, kind: &str) -> ExitCode {
+/// Background refresh started by a script filter serving a stale cache:
+/// `refresh <kind> [env]`.
+fn refresh(app: &App, kind: &str, env: Option<String>) -> ExitCode {
     let Some(kind) = Kind::parse(kind) else {
         eprintln!("unknown source: `{kind}`");
 
         return ExitCode::FAILURE;
     };
+    let target = Target {
+        kind,
+        env: env.filter(|env| !env.is_empty()),
+    };
 
-    match sources::refresh(app, kind) {
+    match sources::refresh(app, &target) {
         Ok(_) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("refresh {kind}: {err}");

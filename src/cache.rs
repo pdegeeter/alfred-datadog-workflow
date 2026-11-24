@@ -83,6 +83,49 @@ impl fmt::Display for Kind {
     }
 }
 
+/// A source to refresh: the kind, and the env for services.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Target {
+    pub kind: Kind,
+    /// Only meaningful for [`Kind::Services`]; `None` means `DD_ENV`.
+    pub env: Option<String>,
+}
+
+impl Target {
+    pub fn new(kind: Kind) -> Target {
+        Target { kind, env: None }
+    }
+
+    /// Services of `env`.
+    pub fn services(env: &str) -> Target {
+        Target {
+            kind: Kind::Services,
+            env: Some(env.to_owned()),
+        }
+    }
+
+    /// `dashboards`, `services:staging`…
+    pub fn token(&self) -> String {
+        match &self.env {
+            Some(env) => format!("{}:{env}", self.kind.name()),
+            None => self.kind.name().to_owned(),
+        }
+    }
+
+    pub fn parse(token: &str) -> Option<Target> {
+        let (name, env) = match token.split_once(':') {
+            Some((name, env)) if !env.is_empty() => (name, Some(env.to_owned())),
+            Some(_) => return None,
+            None => (token, None),
+        };
+
+        Some(Target {
+            kind: Kind::parse(name)?,
+            env,
+        })
+    }
+}
+
 /// What a cached list was fetched for. A cache written for another key is
 /// ignored.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

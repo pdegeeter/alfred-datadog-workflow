@@ -9,7 +9,7 @@
 use anyhow::{anyhow, bail, Result};
 
 use crate::app::App;
-use crate::cache::Kind;
+use crate::cache::Target;
 use crate::frecency::Frecency;
 use crate::runner::CommandRunner;
 use crate::sources;
@@ -36,7 +36,7 @@ pub enum Action {
     /// Show Alfred with this query typed in (e.g. `ddd `).
     Search { query: String },
     /// Fetch these sources now and replace their cache.
-    Refresh { kinds: Vec<Kind> },
+    Refresh { targets: Vec<Target> },
 }
 
 impl Action {
@@ -47,10 +47,10 @@ impl Action {
             Action::OpenUrl { url } => join("open-url", &[url]),
             Action::Copy { text } => join("copy", &[text]),
             Action::Search { query } => format!("search {query}"),
-            Action::Refresh { kinds } => {
-                let names: Vec<&str> = kinds.iter().map(|kind| kind.name()).collect();
+            Action::Refresh { targets } => {
+                let tokens: Vec<String> = targets.iter().map(Target::token).collect();
 
-                join("refresh", &[&names.join(" ")])
+                join("refresh", &[&tokens.join(" ")])
             }
         }
     }
@@ -81,18 +81,18 @@ impl Action {
                 query: required(payload.trim_start(), "query")?,
             },
             "refresh" => {
-                let kinds = payload
+                let targets = payload
                     .split_whitespace()
-                    .map(|name| {
-                        Kind::parse(name).ok_or_else(|| anyhow!("unknown source: {name:?}"))
+                    .map(|token| {
+                        Target::parse(token).ok_or_else(|| anyhow!("unknown source: {token:?}"))
                     })
                     .collect::<Result<Vec<_>>>()?;
 
-                if kinds.is_empty() {
+                if targets.is_empty() {
                     bail!("missing source");
                 }
 
-                Action::Refresh { kinds }
+                Action::Refresh { targets }
             }
             other => bail!("unknown action: {other:?}"),
         };
@@ -172,11 +172,13 @@ pub fn execute(app: &App, action: &Action) -> Result<Option<String>> {
 
             Ok(None)
         }
-        Action::Refresh { kinds } => {
+        Action::Refresh { targets } => {
             let mut done = Vec::new();
 
-            for kind in kinds {
-                match sources::refresh(app, *kind)? {
+            for target in targets {
+                let kind = target.kind;
+
+                match sources::refresh(app, target)? {
                     Some(count) => done.push(format!("{count} {kind}")),
                     None => done.push(format!("{kind} (already refreshing)")),
                 }

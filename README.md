@@ -45,6 +45,21 @@ dashboards (`ddd nb:checkout`).
 
 With no match, the first item searches the dashboard list in Datadog.
 
+### APM services — `dds`
+
+Lists the services APM saw in the env over the last day, plus the services
+declared in the Software Catalog (marked "no traces in <env>"), with their
+team and, when the catalog has them, languages and type. `env:<value>` picks
+another env; `team:<name>` keeps that team's services. Every link uses the
+env and the time range of the query.
+
+- <kbd>↩</kbd> service page
+- <kbd>⌘</kbd><kbd>↩</kbd> its logs (`service:<name> env:<env>`)
+- <kbd>⌥</kbd><kbd>↩</kbd> its traces in the Traces Explorer
+- <kbd>⌃</kbd><kbd>↩</kbd> its Error Tracking issues
+- <kbd>⇧</kbd><kbd>↩</kbd> its monitors
+- <kbd>⇧</kbd><kbd>⌘</kbd><kbd>↩</kbd> copy the service name
+
 ### Cache and refresh
 
 Lists are cached locally and served instantly; when a list is older than its

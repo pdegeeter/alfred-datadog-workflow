@@ -1,0 +1,106 @@
+{
+  "data": [
+    {
+      "attributes": {
+        "meta": {
+          "github-html-url": "",
+          "gitlab-html-url": "",
+          "ingested-schema-version": "v3",
+          "ingestion-source": "api",
+          "last-modified-time": "2026-08-14T12:05:58.516645971Z",
+          "origin": "dd_ui",
+          "origin-detail": "editor",
+          "warnings": []
+        },
+        "schema": {
+          "contacts": [
+            {
+              "contact": "https://example.slack.com/archives/C000",
+              "name": "on-call",
+              "type": "slack"
+            }
+          ],
+          "dd-service": "checkout-api",
+          "docs": [],
+          "extensions": {},
+          "integrations": {},
+          "links": [],
+          "repos": [],
+          "schema-version": "v2",
+          "tags": null,
+          "team": "payments"
+        }
+      },
+      "id": "00000000-0000-0000-0000-000000000100",
+      "type": "service-definition"
+    },
+    {
+      "attributes": {
+        "meta": {
+          "github-html-url": "",
+          "gitlab-html-url": "",
+          "ingested-schema-version": "v3",
+          "ingestion-source": "api",
+          "last-modified-time": "2026-08-14T12:05:58.516645971Z",
+          "origin": "dd_ui",
+          "origin-detail": "editor",
+          "warnings": []
+        },
+        "schema": {
+          "contacts": [
+            {
+              "contact": "https://example.slack.com/archives/C000",
+              "name": "on-call",
+              "type": "slack"
+            }
+          ],
+          "dd-service": "payments-worker",
+          "docs": [],
+          "extensions": {},
+          "integrations": {},
+          "links": [],
+          "repos": [],
+          "schema-version": "v2",
+          "tags": null,
+          "team": "payments"
+        }
+      },
+      "id": "00000000-0000-0000-0000-000000000101",
+      "type": "service-definition"
+    },
+    {
+      "attributes": {
+        "meta": {
+          "github-html-url": "",
+          "gitlab-html-url": "",
+          "ingested-schema-version": "v3",
+          "ingestion-source": "api",
+          "last-modified-time": "2026-08-14T12:05:58.516645971Z",
+          "origin": "dd_ui",
+          "origin-detail": "editor",
+          "warnings": []
+        },
+        "schema": {
+          "contacts": [
+            {
+              "contact": "https://example.slack.com/archives/C000",
+              "name": "on-call",
+              "type": "slack"
+            }
+          ],
+          "dd-service": "billing-cron",
+          "docs": [],
+          "extensions": {},
+          "integrations": {},
+          "links": [],
+          "repos": [],
+          "schema-version": "v2",
+          "tags": null,
+          "team": "platform"
+        }
+      },
+      "id": "00000000-0000-0000-0000-000000000102",
+      "type": "service-definition"
+    }
+  ]
+}

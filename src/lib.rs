@@ -20,6 +20,7 @@ pub mod pup;
 pub mod query;
 pub mod ranking;
 pub mod runner;
+pub mod services;
 pub mod sources;
 pub mod time;
 pub mod urls;

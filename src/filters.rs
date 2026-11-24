@@ -8,7 +8,7 @@ use powerpack::{Item, Output};
 
 use crate::alfred;
 use crate::app::App;
-use crate::cache::{Kind, Loaded};
+use crate::cache::{Kind, Loaded, Target};
 use crate::dashboards::{Board, BoardKind};
 use crate::frecency::Frecency;
 use crate::query::Query;
@@ -68,16 +68,16 @@ pub fn dashboards(app: &App, input: &str) -> Listing {
         );
     }
 
-    let mut kinds = Vec::new();
+    let mut targets = Vec::new();
     let mut loaded: Vec<(Kind, Loaded<Board>)> = Vec::new();
 
     if !only_notebooks {
-        kinds.push(Kind::Dashboards);
+        targets.push(Target::new(Kind::Dashboards));
         loaded.push((Kind::Dashboards, sources::load_dashboards(app)));
     }
 
     if !only_dashboards || only_notebooks {
-        kinds.push(Kind::Notebooks);
+        targets.push(Target::new(Kind::Notebooks));
         loaded.push((Kind::Notebooks, sources::load_notebooks(app)));
     }
 
@@ -122,7 +122,66 @@ pub fn dashboards(app: &App, input: &str) -> Listing {
         ranked, &urls, window, &search, app.now_ms,
     ));
     items.extend(errors);
-    items.push(alfred::refresh_item(&kinds, fetched_ms, app.now_ms));
+    items.push(alfred::refresh_item(&targets, fetched_ms, app.now_ms));
 
     Listing { items, rerun }
+}
+
+/// `dds`: APM services of the query's env (`env:` or `DD_ENV`); `team:`
+/// keeps the services of that team.
+pub fn services(app: &App, input: &str) -> Listing {
+    let query = Query::parse(input);
+    let env = query.env_or(&app.config.env).to_owned();
+    let loaded = sources::load_services(app, &env);
+    let teams: Vec<String> = query
+        .filter_values("team")
+        .into_iter()
+        .filter(|team| !team.is_empty())
+        .map(ranking::normalize)
+        .collect();
+
+    let services = loaded
+        .items
+        .into_iter()
+        .filter(|service| {
+            teams.is_empty()
+                || service
+                    .team
+                    .as_deref()
+                    .is_some_and(|team| teams.contains(&ranking::normalize(team)))
+        })
+        .collect();
+
+    let frecency = frecency(app);
+    let ranked = ranking::rank(
+        services,
+        &ranking::terms(&query.terms),
+        |service| service.name.as_str(),
+        |service| frecency.score(&service.frecency_key(), app.now_ms),
+        |a, b| b.traced.cmp(&a.traced).then_with(|| a.name.cmp(&b.name)),
+    );
+
+    let mut items = Vec::new();
+
+    if let Some(error) = &loaded.error {
+        items.push(alfred::pup_error_item(Kind::Services, error));
+    } else if ranked.is_empty() {
+        items.push(alfred::error_item(
+            "No matching service",
+            &format!("No APM or catalog service matches in {env}"),
+        ));
+    }
+
+    let window = Window::last(query.range_ms, app.now_ms);
+    items.extend(alfred::service_items(ranked, &app.urls(), &env, window));
+    items.push(alfred::refresh_item(
+        &[Target::services(&env)],
+        loaded.fetched_ms,
+        app.now_ms,
+    ));
+
+    Listing {
+        items,
+        rerun: loaded.rerun,
+    }
 }

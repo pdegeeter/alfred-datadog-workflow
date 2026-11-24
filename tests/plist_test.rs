@@ -20,7 +20,10 @@ const MODIFIERS: [(u64, &str); 6] = [
 ];
 
 /// Every keyword and the command line it runs.
-const KEYWORDS: [(&str, &str); 1] = [("ddd", "./alfred-dd dashboards \"$1\"")];
+const KEYWORDS: [(&str, &str); 2] = [
+    ("ddd", "./alfred-dd dashboards \"$1\""),
+    ("dds", "./alfred-dd services \"$1\""),
+];
 
 fn plist() -> Value {
     let output = Command::new("/usr/bin/plutil")

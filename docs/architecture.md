@@ -8,7 +8,8 @@ object in the Alfred workflow graph:
 | Subcommand                     | Alfred object                | Keyword | Responsibility |
 | ------------------------------ | ---------------------------- | ------- | -------------- |
 | `alfred-dd dashboards [query]` | Script Filter                | `ddd`   | Dashboards and notebooks, ranked. |
-| `alfred-dd refresh <kind>`     | — (spawned detached)         | —       | Refresh one cached source in the background. |
+| `alfred-dd services [query]`   | Script Filter                | `dds`   | APM services of an env, with their links. |
+| `alfred-dd refresh <kind> [env]` | — (spawned detached)       | —       | Refresh one cached source in the background (`env` for services). |
 | `alfred-dd run <arg>`          | Run Script (`action.script`) | —       | Decode the selected item's `arg` and perform it. |
 
 Every script filter is connected to the single Run Script, itself connected to
@@ -30,7 +31,7 @@ with `action::execute`.
 | `open-url` | `<url>`    | Open the URL. |
 | `copy`     | `<text>`   | Copy the text. |
 | `search`   | `<query>`  | Reopen Alfred on that query (e.g. `ddd `); the trailing space is kept. |
-| `refresh`  | `<kind>…`  | Fetch these sources now (space-separated kinds) and notify the counts. |
+| `refresh`  | `<target>…` | Fetch these sources now and notify the counts. A target is a kind (`dashboards`) or, for services, `services:<env>`. |
 
 Fields are ordered so that only the last one may contain spaces; URLs, keys
 and kinds never do. A round-trip test covers every verb.
@@ -127,6 +128,7 @@ flowchart TB
 | ------------ | ------------------------------------- | ----- |
 | `dashboards` | `v1/dashboard` | One call, every dashboard; `deleted_at` ones skipped; `url` is the app path. |
 | `notebooks`  | `v1/notebooks?count=100&start=N&sort_field=modified&sort_dir=desc&include_cells=false` | Paged until a short page (at most 50 pages). |
+| `services`   | `v2/apm/services?filter[env]=<env>&start=<s>&end=<s>` (last 24 h, seconds) + `v2/services/definitions?page[size]=100&page[number]=N` | Union by name: APM names (`traced`) enriched with the catalog's team / languages / type (schema v2.x `dd-service`, or v3 `metadata.name`); catalog-only services kept. Cached per env. |
 
 ## Query syntax
 

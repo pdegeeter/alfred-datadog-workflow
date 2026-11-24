@@ -9,9 +9,10 @@
 use powerpack::{Item, Key, Modifier};
 
 use crate::action::Action;
-use crate::cache::Kind;
+use crate::cache::{Kind, Target};
 use crate::dashboards::{Board, BoardKind};
 use crate::pup::{self, PupError};
+use crate::services::Service;
 use crate::time;
 use crate::urls::{Urls, Window};
 
@@ -104,9 +105,15 @@ pub fn pup_error_item(kind: Kind, error: &PupError) -> Item {
     }
 }
 
-/// Last item of a list: ↩ refreshes `kinds` now.
-pub fn refresh_item(kinds: &[Kind], fetched_ms: Option<i64>, now_ms: i64) -> Item {
-    let names: Vec<&str> = kinds.iter().map(|kind| kind.name()).collect();
+/// Last item of a list: ↩ refreshes `targets` now.
+pub fn refresh_item(targets: &[Target], fetched_ms: Option<i64>, now_ms: i64) -> Item {
+    let names: Vec<String> = targets
+        .iter()
+        .map(|target| match &target.env {
+            Some(env) => format!("{} ({env})", target.kind),
+            None => target.kind.to_string(),
+        })
+        .collect();
     let names = names.join(" & ");
     let age = fetched_ms.map_or("never fetched".to_owned(), |fetched| {
         format!("updated {}", time::ago(fetched, now_ms))
@@ -116,7 +123,7 @@ pub fn refresh_item(kinds: &[Kind], fetched_ms: Option<i64>, now_ms: i64) -> Ite
         format!("Refresh {names}"),
         format!("Cached list {age} · ↩ fetch it again now"),
         &Action::Refresh {
-            kinds: kinds.to_vec(),
+            targets: targets.to_vec(),
         },
     )
     .icon(icons::refresh())
@@ -191,6 +198,83 @@ pub fn board_items(
                     &[Key::Shift],
                     "Search the list in Datadog",
                     &Action::OpenUrl { url: list_url },
+                ))
+        })
+        .collect()
+}
+
+/// `dds`: one item per service, every link in `env` on `window`.
+///
+/// ↩ service page · ⌘ logs · ⌥ traces · ⌃ error tracking · ⇧ monitors ·
+/// ⇧⌘ copy the name.
+pub fn service_items(services: Vec<Service>, urls: &Urls, env: &str, window: Window) -> Vec<Item> {
+    services
+        .into_iter()
+        .map(|service| {
+            let name = service.name.clone();
+            let scope = format!("service:{name} env:{env}");
+            let mut subtitle: Vec<String> = Vec::new();
+
+            if let Some(team) = &service.team {
+                subtitle.push(team.clone());
+            }
+
+            let mut stack = service.languages.clone();
+            stack.extend(service.kind.clone());
+
+            if !stack.is_empty() {
+                subtitle.push(stack.join("/"));
+            }
+
+            if service.traced {
+                subtitle.push(env.to_owned());
+            } else {
+                subtitle.push(format!("no traces in {env}"));
+            }
+
+            Item::new(name.clone())
+                .subtitle(subtitle.join(" · "))
+                .arg(
+                    Action::Open {
+                        key: service.frecency_key(),
+                        url: urls.service(&name, env, window),
+                    }
+                    .to_arg(),
+                )
+                .icon(icons::service())
+                .copy_text(name.clone())
+                .modifier(modifier(
+                    &[Key::Command],
+                    &format!("Logs of {name} in {env}"),
+                    &Action::OpenUrl {
+                        url: urls.logs(&scope, window),
+                    },
+                ))
+                .modifier(modifier(
+                    &[Key::Option],
+                    &format!("Traces of {name} in {env}"),
+                    &Action::OpenUrl {
+                        url: urls.traces(&scope, window),
+                    },
+                ))
+                .modifier(modifier(
+                    &[Key::Control],
+                    &format!("Error Tracking for {name} in {env}"),
+                    &Action::OpenUrl {
+                        url: urls.error_tracking(&scope, window),
+                    },
+                ))
+                .modifier(modifier(
+                    &[Key::Shift],
+                    &format!("Monitors of {name}"),
+                    &Action::OpenUrl {
+                        url: urls.monitor_search(&format!("service:{name}")),
+                    },
+                ))
+                .modifier(modifier(
+                    &[Key::Command, Key::Shift],
+                    "Copy the service name",
+                    &Action::Copy { text: name },
                 ))
         })
         .collect()

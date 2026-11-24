@@ -1,0 +1,28 @@
+{
+  "data": {
+    "attributes": {
+      "metadata": [
+        {
+          "isTraced": true
+        },
+        {
+          "isTraced": true
+        },
+        {
+          "isTraced": true
+        },
+        {
+          "isTraced": true
+        }
+      ],
+      "services": [
+        "checkout-api",
+        "payments-worker",
+        "search-api",
+        "notifications-lambda"
+      ]
+    },
+    "id": "00000000-0000-0000-0000-000000000001",
+    "type": "services_list"
+  }
+}
