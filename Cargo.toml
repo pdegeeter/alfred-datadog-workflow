@@ -1,6 +1,6 @@
 [package]
 name = "alfred-dd"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Alfred workflow to navigate Datadog dashboards, notebooks, services, monitors, logs and incidents"
 license = "MIT"
