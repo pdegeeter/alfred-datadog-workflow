@@ -20,7 +20,7 @@ local cache. A single binary, `alfred-dd`, backs every object of the Alfred
 graph:
 
 - **Script Filters**, one per keyword: `dashboards` (`ddd`), `services`
-  (`dds`). They print Alfred JSON (`filters.rs`), with `rerun` while a
+  (`dds`), `logs` (`ddl`, no API call). They print Alfred JSON (`filters.rs`), with `rerun` while a
   background refresh runs.
 - `alfred-dd refresh <kind> [env]`, spawned detached by a script filter
   serving a stale cache (`env` only for services).

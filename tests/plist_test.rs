@@ -20,9 +20,10 @@ const MODIFIERS: [(u64, &str); 6] = [
 ];
 
 /// Every keyword and the command line it runs.
-const KEYWORDS: [(&str, &str); 2] = [
+const KEYWORDS: [(&str, &str); 3] = [
     ("ddd", "./alfred-dd dashboards \"$1\""),
     ("dds", "./alfred-dd services \"$1\""),
+    ("ddl", "./alfred-dd logs \"$1\""),
 ];
 
 fn plist() -> Value {

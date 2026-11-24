@@ -9,6 +9,7 @@ object in the Alfred workflow graph:
 | ------------------------------ | ---------------------------- | ------- | -------------- |
 | `alfred-dd dashboards [query]` | Script Filter                | `ddd`   | Dashboards and notebooks, ranked. |
 | `alfred-dd services [query]`   | Script Filter                | `dds`   | APM services of an env, with their links. |
+| `alfred-dd logs [query]`       | Script Filter                | `ddl`   | Log Explorer link from the query (no API call); `service:` completions from the services cache. |
 | `alfred-dd refresh <kind> [env]` | — (spawned detached)       | —       | Refresh one cached source in the background (`env` for services). |
 | `alfred-dd run <arg>`          | Run Script (`action.script`) | —       | Decode the selected item's `arg` and perform it. |
 
@@ -143,7 +144,11 @@ flowchart TB
   queries.
 
 `ddd` reads `nb:` / `db:` filters to restrict the kind; their value is a
-search term.
+search term. `dds` reads `team:`. `ddl` sends `passthrough` + `env:<env>`
+as the logs / traces query (`filters::search_query`); when the last token is
+`service:<prefix>`, it reads (never fetches) the services cache of the env
+and offers up to 9 completions (`autocomplete`, `valid: false`) that replace
+that token in place.
 
 ## URLs
 

@@ -8,11 +8,12 @@ use powerpack::{Item, Output};
 
 use crate::alfred;
 use crate::app::App;
-use crate::cache::{Kind, Loaded, Target};
+use crate::cache::{Kind, Loaded, Store, Target};
 use crate::dashboards::{Board, BoardKind};
 use crate::frecency::Frecency;
 use crate::query::Query;
 use crate::ranking;
+use crate::services::Service;
 use crate::sources;
 use crate::urls::Window;
 
@@ -125,6 +126,99 @@ pub fn dashboards(app: &App, input: &str) -> Listing {
     items.push(alfred::refresh_item(&targets, fetched_ms, app.now_ms));
 
     Listing { items, rerun }
+}
+
+/// The logs / traces query of `query`: its tokens verbatim (free terms and
+/// `key:value`), then `env:<env>`.
+pub fn search_query(query: &Query, env: &str) -> String {
+    let mut tokens = query.passthrough.clone();
+    tokens.push(format!("env:{env}"));
+
+    tokens.join(" ")
+}
+
+/// Services whose name starts with the `service:` value being typed as the
+/// last token, from the services cache only (never fetched here).
+fn service_suggestions(app: &App, query: &Query, env: &str) -> Vec<String> {
+    let Some(last) = query.passthrough.last() else {
+        return Vec::new();
+    };
+    let Some(prefix) = last.strip_prefix("service:") else {
+        return Vec::new();
+    };
+
+    let store = Store::new(&app.config.cache_dir);
+    let key = sources::key(app, &Target::services(env));
+    let Some(entry) = store.read::<Service>(Kind::Services, &key) else {
+        return Vec::new();
+    };
+
+    if entry.items.iter().any(|service| service.name == prefix) {
+        return Vec::new();
+    }
+
+    let prefix = ranking::normalize(prefix);
+    let frecency = frecency(app);
+    let matches: Vec<Service> = entry
+        .items
+        .into_iter()
+        .filter(|service| ranking::normalize(&service.name).contains(&prefix))
+        .collect();
+
+    ranking::rank(
+        matches,
+        &ranking::terms(&[prefix.as_str()]),
+        |service| service.name.as_str(),
+        |service| frecency.score(&service.frecency_key(), app.now_ms),
+        |a, b| a.name.cmp(&b.name),
+    )
+    .into_iter()
+    .take(MAX_SUGGESTIONS)
+    .map(|service| service.name)
+    .collect()
+}
+
+/// At most this many `service:` completions.
+pub const MAX_SUGGESTIONS: usize = 9;
+
+/// `ddl`: a Log Explorer link built from the query, no API call. Typing
+/// `service:<prefix>` as the last token lists matching services from the
+/// services cache as completions.
+pub fn logs(app: &App, input: &str) -> Listing {
+    let query = Query::parse(input);
+    let env = query.env_or(&app.config.env).to_owned();
+    let search = search_query(&query, &env);
+    let window = Window::last(query.range_ms, app.now_ms);
+    let mut items = vec![alfred::logs_item(
+        &app.urls(),
+        &search,
+        window,
+        query.range_ms,
+    )];
+
+    let tokens: Vec<&str> = input.split_whitespace().collect();
+    let typed = query
+        .passthrough
+        .last()
+        .and_then(|last| tokens.iter().rposition(|token| token == last));
+
+    for name in service_suggestions(app, &query, &env) {
+        let Some(position) = typed else {
+            break;
+        };
+        let mut completion: Vec<String> = tokens.iter().map(|token| token.to_string()).collect();
+        completion[position] = format!("service:{name}");
+
+        items.push(alfred::completion_item(
+            &name,
+            &format!("{} ", completion.join(" ")),
+        ));
+    }
+
+    Listing {
+        items,
+        rerun: false,
+    }
 }
 
 /// `dds`: APM services of the query's env (`env:` or `DD_ENV`); `team:`

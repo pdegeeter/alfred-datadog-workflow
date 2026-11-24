@@ -280,6 +280,60 @@ pub fn service_items(services: Vec<Service>, urls: &Urls, env: &str, window: Win
         .collect()
 }
 
+/// `ddl`: the Log Explorer on `search`.
+///
+/// ↩ Log Explorer · ⌘ Traces Explorer with the same query · ⌥ copy the URL.
+pub fn logs_item(urls: &Urls, search: &str, window: Window, range_ms: i64) -> Item {
+    let url = urls.logs(search, window);
+
+    Item::new(format!("Logs: {search}"))
+        .subtitle(format!(
+            "Last {} · ↩ Log Explorer · ⌘ Traces Explorer · ⌥ copy URL",
+            duration(range_ms)
+        ))
+        .arg(Action::OpenUrl { url: url.clone() }.to_arg())
+        .icon(icons::document())
+        .copy_text(url.clone())
+        .modifier(modifier(
+            &[Key::Command],
+            "Open the same query in the Traces Explorer",
+            &Action::OpenUrl {
+                url: urls.traces(search, window),
+            },
+        ))
+        .modifier(modifier(
+            &[Key::Option],
+            "Copy the Log Explorer URL",
+            &Action::Copy { text: url },
+        ))
+}
+
+/// A suggestion that completes the query to `completion` (⇥ or ↩).
+pub fn completion_item(title: &str, completion: &str) -> Item {
+    Item::new(title)
+        .subtitle("↩ or ⇥ to complete the query")
+        .autocomplete(completion)
+        .valid(false)
+        .icon(icons::service())
+}
+
+/// `15m`, `1h`, `7d`, `90m`…
+pub fn duration(range_ms: i64) -> String {
+    const MINUTE_MS: i64 = 60_000;
+    const HOUR_MS: i64 = 60 * MINUTE_MS;
+    const DAY_MS: i64 = 24 * HOUR_MS;
+
+    if range_ms % DAY_MS == 0 {
+        return format!("{}d", range_ms / DAY_MS);
+    }
+
+    if range_ms % HOUR_MS == 0 {
+        return format!("{}h", range_ms / HOUR_MS);
+    }
+
+    format!("{}m", range_ms / MINUTE_MS)
+}
+
 /// `ddd` with no match: search the dashboard list in Datadog.
 pub fn no_board_item(urls: &Urls, search: &str) -> Item {
     action_item(

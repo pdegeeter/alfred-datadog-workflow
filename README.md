@@ -60,6 +60,21 @@ env and the time range of the query.
 - <kbd>⇧</kbd><kbd>↩</kbd> its monitors
 - <kbd>⇧</kbd><kbd>⌘</kbd><kbd>↩</kbd> copy the service name
 
+### Logs — `ddl`
+
+Builds a Log Explorer link from the query, without any API call: the query
+is passed through as is (`service:checkout-api status:error timeout`), with
+`env:<DD_ENV>` added unless the query sets `env:`, on the query's time range
+(`ddl status:error -15m`).
+
+While you type `service:<prefix>` as the last token, matching services from
+the `dds` cache are listed; <kbd>⇥</kbd> or <kbd>↩</kbd> completes the name.
+Run `dds` once to fill that cache.
+
+- <kbd>↩</kbd> open the Log Explorer
+- <kbd>⌘</kbd><kbd>↩</kbd> open the same query in the Traces Explorer
+- <kbd>⌥</kbd><kbd>↩</kbd> copy the Log Explorer URL
+
 ### Cache and refresh
 
 Lists are cached locally and served instantly; when a list is older than its

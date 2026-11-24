@@ -67,6 +67,7 @@ export DD_ENV=prod   # your env; DD_SITE defaults to datadoghq.eu
 
 $B dashboards "checkout -4h" | python3 -m json.tool   # ddd
 $B services "checkout env:staging" | python3 -m json.tool   # dds
+$B logs "service:check status:error -15m" | python3 -m json.tool   # ddl
 $B refresh dashboards                                  # what a stale cache spawns
 
 # Actions take the `arg` of an item (see docs/architecture.md):
@@ -98,6 +99,7 @@ items and anonymized (neutral names such as `checkout-api`, `team:payments`,
 | `tests/action_test.rs`   | `arg` round-trip of every action, invalid args, execution (frecency then open, clipboard, Alfred search, refresh counts and errors). |
 | `tests/query_test.rs`    | Terms, `env:` (override, being typed), time suffixes (only last), passthrough `key:value`, URLs and times not filters. |
 | `tests/urls_test.rs`     | Every URL builder on EU / US / US3 sites, time ranges (live / paused), encoding, blank searches, site normalization, Datadog hosts. |
+| `tests/logs_test.rs`     | Log Explorer / Traces Explorer / copy links with passthrough, `env:` and time range, no pup call, `service:` completions from the per-env cache (in place, substring, none when complete). |
 | `tests/services_test.rs` | APM and catalog fixtures, v2.2 / v3 schemas, union by name, APM window and catalog pagination argv, ordering, `team:`, every modifier with `env:` and time range, per-env cache and background refresh, errors. |
 | `tests/dashboards_test.rs` | Dashboards and notebooks fixtures, deleted dashboards, notebook pagination, ranking (accents, `nb:` / `db:`, frecency), every modifier, empty result, stale cache ⇒ detached refresh + `rerun`, pup error items. |
 | `tests/plist_test.rs`    | `workflow/info.plist`: every keyword and the subcommand it runs, every modifier connected to the action, the readme, the `DD_SITE` / `DD_ENV` defaults (uses macOS `plutil`). |

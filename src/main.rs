@@ -3,6 +3,7 @@
 //! Subcommands, dispatched by Alfred:
 //!   * `dashboards [query]` — script filter `ddd`: dashboards and notebooks.
 //!   * `services [query]`   — script filter `dds`: APM services.
+//!   * `logs [query]`       — script filter `ddl`: Log Explorer link.
 //!   * `refresh <kind> [env]` — background refresh of one cached source.
 //!   * `run <arg>`          — Run Script action: perform the selected item.
 
@@ -49,10 +50,13 @@ fn main() -> ExitCode {
     match command.as_str() {
         "dashboards" => output(filters::dashboards(&app, &arg)),
         "services" => output(filters::services(&app, &arg)),
+        "logs" => output(filters::logs(&app, &arg)),
         "refresh" => refresh(&app, &arg, extra),
         "run" => run(&app, &arg),
         other => {
-            eprintln!("unknown command: `{other}` (expected dashboards, services, refresh or run)");
+            eprintln!(
+                "unknown command: `{other}` (expected dashboards, services, logs, refresh or run)"
+            );
 
             ExitCode::FAILURE
         }
