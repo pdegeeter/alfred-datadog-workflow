@@ -46,7 +46,8 @@ cargo fmt --all                           # format (CI checks with --check)
 ## Architecture
 
 **Everything is a pure function except one trait.** Every process spawn —
-`osascript` (clipboard write, Alfred) and `/usr/bin/open` — goes through
+`pup` (Datadog), `osascript` (clipboard write, Alfred) and `/usr/bin/open` —
+goes through
 `runner::CommandRunner` (`SystemRunner` in prod). Its `spawn_detached` starts a
 background process without waiting for it. Tests inject `FakeRunner`
 (`tests/common/mod.rs`), which returns queued canned stdout per program and
@@ -57,6 +58,26 @@ new logic pure and route any new spawn through it.
   `production`) from Alfred's workflow variables; cache and data directories.
 - `app.rs` — `App`: runner + config + `now_ms`, injected everywhere so time is
   deterministic in tests.
+- `pup.rs` — every Datadog read is `pup --no-envelope api <endpoint>` (raw
+  GET). pup's own subcommands (`dashboards list`, `monitors search`…) answer
+  403 with an OAuth token `pup api` accepts: do not use them. pup is resolved
+  by absolute path (`/opt/homebrew/bin/pup`, then `/usr/local/bin/pup`; Alfred
+  has no shell `PATH`). Errors are classified from pup's stderr
+  (`pup::classify`); a 401 or expired session runs `pup auth refresh` once and
+  retries once.
+- `cache.rs` — stale-while-revalidate JSON cache per `Kind` (dashboards,
+  notebooks, services 1 h; monitors 2 min; incidents 60 s) keyed by site (and
+  env for services). Stale ⇒ served + detached `alfred-dd refresh <kind>` +
+  Alfred `rerun`; missing ⇒ synchronous fetch; corrupted or other key ⇒
+  missing. A lock file per kind prevents concurrent refreshes; a `.failed`
+  marker stops a failing refresh from respawning on every rerun.
+- `frecency.rs` — count + last open per `<kind>:<id>` in
+  `$alfred_workflow_data/frecency.json`, decayed with a one-week half-life.
+- `ranking.rs` — accent/case-insensitive matching (every term must match),
+  tiers exact > prefix > word prefix > substring, then score, then a
+  tie-breaker.
+- `time.rs` / `percent.rs` — RFC 3339 parsing and "3d ago"; query-string
+  encoding. No date or URL crate.
 - `action.rs` — the `arg` protocol (`Action::to_arg` / `Action::parse`) and
   `execute`.
 - `alfred.rs` — item builders; item icons are macOS system icons.

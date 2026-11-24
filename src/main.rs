@@ -26,6 +26,12 @@ fn main() -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+
+    // Inherited by every pup child: no update check (a GitHub call), and the
+    // configured site even when Alfred did not export it.
+    env::set_var("PUP_NO_UPDATE_CHECK", "1");
+    env::set_var("DD_SITE", &config.site);
+
     let app = App::new(&runner, config, now_ms());
 
     match command.as_str() {

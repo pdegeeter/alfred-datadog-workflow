@@ -25,6 +25,9 @@
 - Rust (stable) — `rustup` recommended.
 - [`powerpack-cli`](https://crates.io/crates/powerpack-cli): `cargo install powerpack-cli`.
 - Alfred 5 with Powerpack, to actually run the workflow.
+- [`pup`](https://github.com/DataDog/pup) logged in, to run it against
+  Datadog: `brew install datadog-labs/pack/pup`, then
+  `DD_SITE=datadoghq.eu pup auth login`.
 
 ## Common tasks
 
@@ -77,6 +80,11 @@ injected (`common::NOW_MS`).
 | Test file                | Covers |
 | ------------------------ | ------ |
 | `tests/config_test.rs`   | `DD_SITE` / `DD_ENV` defaults, blank values, trimming. |
+| `tests/pup_test.rs`      | `pup api` argv, 401 ⇒ `auth refresh` ⇒ retry as an exact argv sequence, failed refresh, no retry on other errors, error classification table, binary resolution order. |
+| `tests/cache_test.rs`    | TTL per kind, fresh / stale / missing / corrupted / other site or env per kind, background refresh started once, lock, abandoned lock, failed-refresh marker. |
+| `tests/frecency_test.rs` | Recording, one-week half-life, recency vs frequency, persistence, corrupted file. |
+| `tests/ranking_test.rs`  | Accent folding, tiers, multi-word queries, score and tie-breaker ordering, empty query. |
+| `tests/time_test.rs`     | RFC 3339 parsing (fractions, offsets), "3d ago", percent-encoding. |
 | `tests/action_test.rs`   | `arg` round-trip of every action, invalid args, execution (open, clipboard, Alfred search). |
 | `tests/plist_test.rs`    | `workflow/info.plist`: every keyword and the subcommand it runs, every modifier connected to the action, the readme, the `DD_SITE` / `DD_ENV` defaults (uses macOS `plutil`). |
 
