@@ -1,0 +1,52 @@
+{
+  "dashboards": [
+    {
+      "author_handle": "alice@example.com",
+      "created_at": "2024-01-01T00:00:00.000000+00:00",
+      "deleted_at": null,
+      "description": "",
+      "id": "abc-def-ghi",
+      "is_read_only": false,
+      "layout_type": "ordered",
+      "modified_at": "2026-11-20T10:00:00.000000+00:00",
+      "title": "Checkout API overview",
+      "url": "/dashboard/abc-def-ghi/checkout-api-overview"
+    },
+    {
+      "author_handle": "bob@example.com",
+      "created_at": "2024-01-01T00:00:00.000000+00:00",
+      "deleted_at": null,
+      "description": "",
+      "id": "jkl-mno-pqr",
+      "is_read_only": false,
+      "layout_type": "ordered",
+      "modified_at": "2026-11-01T08:30:00.000000+00:00",
+      "title": "Équipe Paiements · latence",
+      "url": "/dashboard/jkl-mno-pqr/equipe-paiements-latence"
+    },
+    {
+      "author_handle": "alice@example.com",
+      "created_at": "2024-01-01T00:00:00.000000+00:00",
+      "deleted_at": null,
+      "description": "",
+      "id": "stu-vwx-yz1",
+      "is_read_only": false,
+      "layout_type": "ordered",
+      "modified_at": "2026-10-15T12:00:00.000000+00:00",
+      "title": "Payments worker",
+      "url": "/dashboard/stu-vwx-yz1/payments-worker"
+    },
+    {
+      "author_handle": "bob@example.com",
+      "created_at": "2024-01-01T00:00:00.000000+00:00",
+      "deleted_at": null,
+      "description": "",
+      "id": "234-567-89a",
+      "is_read_only": false,
+      "layout_type": "ordered",
+      "modified_at": "2025-06-01T09:00:00.000000+00:00",
+      "title": "Platform SLOs",
+      "url": "/dashboard/234-567-89a/platform-slos"
+    }
+  ]
+}

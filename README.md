@@ -1,3 +1,169 @@
 # Alfred Datadog Workflow
 
-An Alfred workflow, written in Rust, to navigate Datadog from Alfred.
+An [Alfred](https://www.alfredapp.com/) workflow, written in Rust, to navigate
+[Datadog](https://www.datadoghq.com/) from Alfred. It is **read-only**: every
+action opens a URL, copies text or refreshes a local cache; nothing is ever
+written to Datadog.
+
+```
+ddd checkout -4h
+ ┌──────────────────────────────────────────────────────────┐
+ │ Checkout API overview                                      │
+ │   alice@example.com · Dashboard · modified 4d ago          │
+ │ Checkout incident review                                   │
+ │   Alice Martin · Notebook (investigation) · modified 6d ago│
+ └──────────────────────────────────────────────────────────┘
+```
+
+## Usage
+
+### Query syntax
+
+Every keyword shares the same syntax:
+
+- **free terms** match names, case- and accent-insensitively; every term must
+  match. Exact names first, then names starting with the query, then words
+  starting with each term, then anything containing them; then the objects you
+  open most often (and most recently), then the most recently modified.
+- **`env:<value>`** overrides `DD_ENV` for that query.
+- **a time suffix** as the last token — `-15m`, `-1h`, `-4h`, `-24h`, `-7d`
+  (any `-<n>m|h|d`) — sets the time range of the links (default: the last
+  hour, live).
+- other **`key:value`** tokens are kept verbatim for logs / traces queries.
+
+### Start here — `dd`
+
+Reads the clipboard once and, if it holds something Datadog, shows it first:
+
+| Clipboard | Item |
+| --------- | ---- |
+| 32 hex characters | the trace (128-bit id) |
+| 1–20 digits | the trace (64-bit id) **and** the monitor with that id |
+| `monitor 123`, `monitor:123`, a monitor URL | the monitor |
+| `#12`, `incident 12`, an incident URL | the incident |
+| any other `app.datadoghq.*` URL | that page, on your `DD_SITE` |
+
+An ID typed after `dd` (`dd #12`) wins over the clipboard. Then every keyword
+is listed; <kbd>↩</kbd> reopens Alfred on it, carrying what you typed.
+
+- <kbd>↩</kbd> open it
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+
+### Dashboards and notebooks — `ddd`
+
+Lists your dashboards and notebooks. `nb:` restricts to notebooks, `db:` to
+dashboards (`ddd nb:checkout`).
+
+- <kbd>↩</kbd> open it
+- <kbd>⌘</kbd><kbd>↩</kbd> open it on the query's time range (default the last
+  hour, live)
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+- <kbd>⇧</kbd><kbd>↩</kbd> open the dashboard (or notebook) list in Datadog,
+  searched for the query
+
+With no match, the first item searches the dashboard list in Datadog.
+
+### APM services — `dds`
+
+Lists the services APM saw in the env over the last day, plus the services
+declared in the Software Catalog (marked "no traces in <env>"), with their
+team and, when the catalog has them, languages and type. `env:<value>` picks
+another env; `team:<name>` keeps that team's services. Every link uses the
+env and the time range of the query.
+
+- <kbd>↩</kbd> service page
+- <kbd>⌘</kbd><kbd>↩</kbd> its logs (`service:<name> env:<env>`)
+- <kbd>⌥</kbd><kbd>↩</kbd> its traces in the Traces Explorer
+- <kbd>⌃</kbd><kbd>↩</kbd> its Error Tracking issues
+- <kbd>⇧</kbd><kbd>↩</kbd> its monitors
+- <kbd>⇧</kbd><kbd>⌘</kbd><kbd>↩</kbd> copy the service name
+
+### Monitors — `ddm`
+
+Lists the monitors of the env (tagged `env:<DD_ENV>`, or with no `env:` tag),
+alerting first: Alert, Warn, No Data, OK; then the ones you open most, then
+by name. Free terms match the name; `team:<name>` and `service:<name>` keep
+monitors with those tags; `env:<value>` picks another env. The subtitle shows
+the state, type, service and team tags and when it last triggered.
+
+- <kbd>↩</kbd> open the monitor
+- <kbd>⌘</kbd><kbd>↩</kbd> open the monitor list in Datadog, searched for the
+  query
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+
+### Incidents — `ddi`
+
+Lists the incidents that are not resolved (active and stable), most severe
+first, then the newest. Free terms match the title. The subtitle shows the
+severity, state, commander and age; with none, it says "No active incident".
+
+- <kbd>↩</kbd> open the incident
+- <kbd>⌥</kbd><kbd>↩</kbd> copy its URL
+
+### Logs — `ddl`
+
+Builds a Log Explorer link from the query, without any API call: the query
+is passed through as is (`service:checkout-api status:error timeout`), with
+`env:<DD_ENV>` added unless the query sets `env:`, on the query's time range
+(`ddl status:error -15m`).
+
+While you type `service:<prefix>` as the last token, matching services from
+the `dds` cache are listed; <kbd>⇥</kbd> or <kbd>↩</kbd> completes the name.
+Run `dds` once to fill that cache.
+
+- <kbd>↩</kbd> open the Log Explorer
+- <kbd>⌘</kbd><kbd>↩</kbd> open the same query in the Traces Explorer
+- <kbd>⌥</kbd><kbd>↩</kbd> copy the Log Explorer URL
+
+### Cache and refresh
+
+Lists are cached locally and served instantly; when a list is older than its
+lifetime (dashboards, notebooks, services: 1 hour; monitors: 2 minutes;
+incidents: 1 minute) it is shown at once and refreshed in the background,
+and Alfred updates the results when the refresh lands. The last item of each
+list, **Refresh …**, fetches it again right away.
+
+## Requirements
+
+- [pup](https://github.com/DataDog/pup), Datadog's CLI, logged in:
+
+  ```sh
+  brew install datadog-labs/pack/pup
+  DD_SITE=datadoghq.eu pup auth login
+  ```
+
+  The workflow reads Datadog through `pup api` with your OAuth session; it
+  refreshes the session when it expires and tells you to run
+  `pup auth login` when that is not enough.
+
+## Configuration
+
+Set these in the workflow configuration (Alfred Preferences → Workflows →
+Datadog → Configure Workflow):
+
+| Variable  | Default        | Meaning |
+| --------- | -------------- | ------- |
+| `DD_SITE` | `datadoghq.eu` | Site of your Datadog organization (`datadoghq.com`, `us3.datadoghq.com`, …). |
+| `DD_ENV`  | `production`   | Default environment for services, logs, traces and monitors. |
+
+## Install
+
+1. Download `alfred-dd.alfredworkflow` from the
+   [latest release](https://github.com/pdegeeter/alfred-datadog-workflow/releases/latest).
+2. Double-click it to import into Alfred.
+
+Requires Alfred 5 with the Powerpack, on Apple Silicon (arm64).
+
+## Development
+
+See [docs/development.md](docs/development.md) for building, testing and
+deploying locally, [docs/architecture.md](docs/architecture.md) for how it
+works, and [docs/release.md](docs/release.md) for the release process.
+
+## License
+
+MIT
+
+Datadog and the Datadog logo are trademarks of Datadog, Inc. This is an
+independent project, not affiliated with or endorsed by Datadog; the logo is
+used unmodified as the workflow icon to identify the service it opens.

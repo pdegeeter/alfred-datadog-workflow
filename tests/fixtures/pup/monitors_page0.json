@@ -1,0 +1,168 @@
+{
+  "counts": {
+    "muted": [
+      {
+        "count": 5,
+        "name": false
+      }
+    ],
+    "status": [
+      {
+        "count": 1,
+        "name": "Alert"
+      }
+    ],
+    "tag": [
+      {
+        "count": 3,
+        "name": "team:payments"
+      }
+    ],
+    "type": [
+      {
+        "count": 3,
+        "name": "query alert"
+      }
+    ]
+  },
+  "metadata": {
+    "page": 0,
+    "page_count": 2,
+    "per_page": 3,
+    "total_count": 5
+  },
+  "monitors": [
+    {
+      "classification": "integration",
+      "created": 1646821915,
+      "creator": {
+        "handle": "alice@example.com",
+        "id": 1,
+        "name": "Alice Martin"
+      },
+      "draft_status": "published",
+      "evaluation_window_type": "rolling",
+      "id": 101,
+      "last_triggered_ts": 1795000000,
+      "message": "@alice@example.com",
+      "metrics": [
+        "example.metric"
+      ],
+      "modified": 1779891577,
+      "muted_until_ts": null,
+      "name": "Checkout API error rate",
+      "notification_rules": null,
+      "notifications": [
+        {
+          "handle": "alice@example.com",
+          "name": "Alice Martin"
+        }
+      ],
+      "org_id": 1,
+      "overall_state_modified": 1795088603,
+      "priority": 2,
+      "quality_issues": [],
+      "query": "avg(last_5m):avg:example.metric{*} > 1",
+      "restricted_roles": [
+        "0184ed56-6f01-11ec-8c0f-da7ad0900005"
+      ],
+      "scheduling_type": "continuous",
+      "scopes": [],
+      "status": "Alert",
+      "tags": [
+        "env:production",
+        "service:checkout-api",
+        "team:payments"
+      ],
+      "type": "query alert"
+    },
+    {
+      "classification": "integration",
+      "created": 1646821915,
+      "creator": {
+        "handle": "alice@example.com",
+        "id": 1,
+        "name": "Alice Martin"
+      },
+      "draft_status": "published",
+      "evaluation_window_type": "rolling",
+      "id": 102,
+      "last_triggered_ts": 1794990000,
+      "message": "@alice@example.com",
+      "metrics": [
+        "example.metric"
+      ],
+      "modified": 1779891577,
+      "muted_until_ts": null,
+      "name": "Payments worker latency",
+      "notification_rules": null,
+      "notifications": [
+        {
+          "handle": "alice@example.com",
+          "name": "Alice Martin"
+        }
+      ],
+      "org_id": 1,
+      "overall_state_modified": 1795088603,
+      "priority": 2,
+      "quality_issues": [],
+      "query": "avg(last_5m):avg:example.metric{*} > 1",
+      "restricted_roles": [
+        "0184ed56-6f01-11ec-8c0f-da7ad0900005"
+      ],
+      "scheduling_type": "continuous",
+      "scopes": [],
+      "status": "Warn",
+      "tags": [
+        "env:production",
+        "service:payments-worker",
+        "team:payments"
+      ],
+      "type": "query alert"
+    },
+    {
+      "classification": "integration",
+      "created": 1646821915,
+      "creator": {
+        "handle": "alice@example.com",
+        "id": 1,
+        "name": "Alice Martin"
+      },
+      "draft_status": "published",
+      "evaluation_window_type": "rolling",
+      "id": 103,
+      "last_triggered_ts": null,
+      "message": "@alice@example.com",
+      "metrics": [
+        "example.metric"
+      ],
+      "modified": 1779891577,
+      "muted_until_ts": null,
+      "name": "Search API no traffic",
+      "notification_rules": null,
+      "notifications": [
+        {
+          "handle": "alice@example.com",
+          "name": "Alice Martin"
+        }
+      ],
+      "org_id": 1,
+      "overall_state_modified": 1795088603,
+      "priority": 2,
+      "quality_issues": [],
+      "query": "avg(last_5m):avg:example.metric{*} > 1",
+      "restricted_roles": [
+        "0184ed56-6f01-11ec-8c0f-da7ad0900005"
+      ],
+      "scheduling_type": "continuous",
+      "scopes": [],
+      "status": "No Data",
+      "tags": [
+        "env:production",
+        "service:search-api",
+        "team:platform"
+      ],
+      "type": "metric alert"
+    }
+  ]
+}
