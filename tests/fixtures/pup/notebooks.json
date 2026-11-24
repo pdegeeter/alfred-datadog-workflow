@@ -1,0 +1,94 @@
+{
+  "data": [
+    {
+      "attributes": {
+        "author": {
+          "disabled": false,
+          "email": "alice@example.com",
+          "handle": "alice@example.com",
+          "icon": "https://example.com/avatar.png",
+          "name": "Alice Martin",
+          "status": "Active",
+          "title": "",
+          "verified": true
+        },
+        "created": "2026-01-01T00:00:00.000000+00:00",
+        "deleted": null,
+        "metadata": {
+          "is_favorite": false,
+          "is_template": false,
+          "take_snapshots": false,
+          "type": "investigation"
+        },
+        "modified": "2026-11-18T09:45:07.234445+00:00",
+        "name": "Checkout incident review",
+        "status": "published",
+        "tags": []
+      },
+      "id": 1001,
+      "type": "notebooks"
+    },
+    {
+      "attributes": {
+        "author": {
+          "disabled": false,
+          "email": "bob@example.com",
+          "handle": "bob@example.com",
+          "icon": "https://example.com/avatar.png",
+          "name": "Bob Durand",
+          "status": "Active",
+          "title": "",
+          "verified": true
+        },
+        "created": "2026-01-01T00:00:00.000000+00:00",
+        "deleted": null,
+        "metadata": {
+          "is_favorite": false,
+          "is_template": false,
+          "take_snapshots": false,
+          "type": "report"
+        },
+        "modified": "2026-11-10T09:00:00.000000+00:00",
+        "name": "Latence des paiements",
+        "status": "published",
+        "tags": []
+      },
+      "id": 1002,
+      "type": "notebooks"
+    },
+    {
+      "attributes": {
+        "author": {
+          "disabled": false,
+          "email": "alice@example.com",
+          "handle": "alice@example.com",
+          "icon": "https://example.com/avatar.png",
+          "name": "Alice Martin",
+          "status": "Active",
+          "title": "",
+          "verified": true
+        },
+        "created": "2026-01-01T00:00:00.000000+00:00",
+        "deleted": null,
+        "metadata": {
+          "is_favorite": false,
+          "is_template": false,
+          "take_snapshots": false,
+          "type": null
+        },
+        "modified": "2026-09-01T09:00:00.000000+00:00",
+        "name": "Capacity planning",
+        "status": "published",
+        "tags": []
+      },
+      "id": 1003,
+      "type": "notebooks"
+    }
+  ],
+  "meta": {
+    "page": {
+      "total_count": 3,
+      "total_filtered_count": 3
+    }
+  }
+}

@@ -150,19 +150,6 @@ impl<'a> Pup<'a> {
         }
     }
 
-    /// The first of [`CANDIDATES`] that exists, if any.
-    pub fn locate(runner: &'a dyn CommandRunner) -> Option<Pup<'a>> {
-        Pup::locate_in(runner, &CANDIDATES)
-    }
-
-    /// The first of `candidates` that is a file, if any.
-    pub fn locate_in(runner: &'a dyn CommandRunner, candidates: &[&str]) -> Option<Pup<'a>> {
-        candidates
-            .iter()
-            .find(|candidate| Path::new(candidate).is_file())
-            .map(|program| Pup::new(runner, *program))
-    }
-
     pub fn program(&self) -> &str {
         &self.program
     }
@@ -194,4 +181,17 @@ impl<'a> Pup<'a> {
             .map(|_| ())
             .map_err(|err| classify(&format!("{err:#}")))
     }
+}
+
+/// Path of the installed pup: the first of [`CANDIDATES`] that exists.
+pub fn locate() -> Option<String> {
+    locate_in(&CANDIDATES)
+}
+
+/// The first of `candidates` that is a file, if any.
+pub fn locate_in(candidates: &[&str]) -> Option<String> {
+    candidates
+        .iter()
+        .find(|candidate| Path::new(candidate).is_file())
+        .map(|program| program.to_string())
 }

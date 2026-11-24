@@ -145,9 +145,30 @@ pub fn config(dir: &Path, site: &str, env: &str) -> Config {
     }
 }
 
-/// An [`App`] on `datadoghq.eu` / `production` at [`NOW_MS`].
+/// Where the tests pretend pup is installed.
+pub const PUP: &str = "/opt/homebrew/bin/pup";
+
+/// Where the tests pretend the workflow binary is.
+pub const EXE: &str = "/workflow/alfred-dd";
+
+/// An [`App`] on `datadoghq.eu` / `production` at [`NOW_MS`], pup installed.
 pub fn app<'a>(runner: &'a FakeRunner, dir: &Path) -> App<'a> {
-    App::new(runner, config(dir, "datadoghq.eu", "production"), NOW_MS)
+    App::new(
+        runner,
+        config(dir, "datadoghq.eu", "production"),
+        Some(PUP.to_owned()),
+        EXE,
+        NOW_MS,
+    )
+}
+
+/// The pup argv of `GET endpoint`.
+pub fn api(endpoint: &str) -> Vec<String> {
+    vec![
+        "--no-envelope".to_owned(),
+        "api".to_owned(),
+        endpoint.to_owned(),
+    ]
 }
 
 /// The JSON Alfred receives for these items.

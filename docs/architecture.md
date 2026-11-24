@@ -5,9 +5,11 @@
 The workflow is a single Rust binary, `alfred-dd`, with one subcommand per
 object in the Alfred workflow graph:
 
-| Subcommand               | Alfred object                | Keyword | Responsibility |
-| ------------------------ | ---------------------------- | ------- | -------------- |
-| `alfred-dd run <arg>`    | Run Script (`action.script`) | —       | Decode the selected item's `arg` and perform it. |
+| Subcommand                     | Alfred object                | Keyword | Responsibility |
+| ------------------------------ | ---------------------------- | ------- | -------------- |
+| `alfred-dd dashboards [query]` | Script Filter                | `ddd`   | Dashboards and notebooks, ranked. |
+| `alfred-dd refresh <kind>`     | — (spawned detached)         | —       | Refresh one cached source in the background. |
+| `alfred-dd run <arg>`          | Run Script (`action.script`) | —       | Decode the selected item's `arg` and perform it. |
 
 Every script filter is connected to the single Run Script, itself connected to
 a Post Notification that shows whatever `run` prints (copies, refreshes,
@@ -24,9 +26,11 @@ with `action::execute`.
 
 | Verb       | Payload    | Effect |
 | ---------- | ---------- | ------ |
+| `open`     | `<key> <url>` | Record an open of `key` (`dashboard:<id>`, `notebook:<id>`, `service:<name>`, `monitor:<id>`, `incident:<public_id>`) in the frecency, then open the URL. |
 | `open-url` | `<url>`    | Open the URL. |
 | `copy`     | `<text>`   | Copy the text. |
 | `search`   | `<query>`  | Reopen Alfred on that query (e.g. `ddd `); the trailing space is kept. |
+| `refresh`  | `<kind>…`  | Fetch these sources now (space-separated kinds) and notify the counts. |
 
 Fields are ordered so that only the last one may contain spaces; URLs, keys
 and kinds never do. A round-trip test covers every verb.
@@ -116,6 +120,51 @@ flowchart TB
   rename) and releases the lock. A failure leaves `<kind>.failed` so reruns
   do not respawn it for 60 s.
 - Freshness is computed against the injected clock (`cache::freshness`).
+
+## Sources
+
+| Kind         | Endpoint (`pup --no-envelope api …`) | Notes |
+| ------------ | ------------------------------------- | ----- |
+| `dashboards` | `v1/dashboard` | One call, every dashboard; `deleted_at` ones skipped; `url` is the app path. |
+| `notebooks`  | `v1/notebooks?count=100&start=N&sort_field=modified&sort_dir=desc&include_cells=false` | Paged until a short page (at most 50 pages). |
+
+## Query syntax
+
+`query::Query::parse` is shared by every keyword:
+
+- free terms → `terms` (matched against names);
+- `env:<value>` → `env`, overrides `DD_ENV`; an empty `env:` is a filter being
+  typed;
+- a last token `-<n>m|h|d` → `range_ms` (default one hour);
+- any other `key:value` (key starting with a letter or `@`; not a URL or a
+  time) → `filters`, and kept verbatim in `passthrough` for logs / traces
+  queries.
+
+`ddd` reads `nb:` / `db:` filters to restrict the kind; their value is a
+search term.
+
+## URLs
+
+`urls.rs` builds every link from `https://app.<DD_SITE>`. Times are epoch
+milliseconds; a range ending now is live.
+
+| Page | Format |
+| ---- | ------ |
+| Dashboard | `<path from the API>` (`/dashboard/<id>/<slug>`), `?from_ts=&to_ts=&live=` |
+| Dashboard list | `/dashboard/lists?q=<query>` |
+| Notebook | `/notebook/<id>`, `?from_ts=&to_ts=&live=` |
+| Notebook list | `/notebook/list?q=<query>` |
+| Service page | `/apm/entity/service%3A<name>?env=<env>&start=&end=&paused=` |
+| Log Explorer | `/logs?query=<q>&from_ts=&to_ts=&live=` |
+| Traces Explorer | `/apm/traces?query=<q>&start=&end=&paused=` |
+| Error Tracking | `/error-tracking?query=<q>&from_ts=&to_ts=&live=` |
+| Monitor | `/monitors/<id>` |
+| Monitor list | `/monitors/manage?q=<query>` |
+| Incident | `/incidents/<public_id>` (the numeric `#12`, not the UUID) |
+| Trace | `/apm/trace/<id>` (32 hex chars or decimal) |
+
+A blank list search opens the plain list. Clipboard URLs from another Datadog
+site are moved to `DD_SITE` (`Urls::on_this_site`).
 
 ## Ranking and frecency
 

@@ -19,7 +19,10 @@ never writes to Datadog: every action opens a URL, copies text or refreshes a
 local cache. A single binary, `alfred-dd`, backs every object of the Alfred
 graph:
 
-- **Script Filters**, one per keyword (none yet). They print Alfred JSON.
+- **Script Filters**, one per keyword: `dashboards` (`ddd`). They print
+  Alfred JSON (`filters.rs`), with `rerun` while a background refresh runs.
+- `alfred-dd refresh <kind>`, spawned detached by a script filter serving a
+  stale cache.
 - One **Run Script**, `alfred-dd run <arg>`, connected to every script filter
   for every modifier (none, ⌘, ⌥, ⌃, ⇧, ⇧⌘). `arg` is an encoded
   `action::Action` (`"<verb> <payload>"`, see `docs/architecture.md`).
@@ -39,6 +42,9 @@ cargo fmt --all                           # format (CI checks with --check)
 ./scripts/build.sh            # sync plist version + build release + package .alfredworkflow
 ./scripts/deploy.sh           # build + update the installed workflow in place (imports it the first time)
 ./scripts/deploy.sh --import  # build + open the .alfredworkflow to import it
+
+# Exercise the binary directly (it speaks Alfred JSON on stdout; needs pup logged in):
+cargo build && DD_ENV=prod ./target/debug/alfred-dd dashboards checkout | python3 -m json.tool
 ```
 
 `powerpack-cli` is required for build/deploy/packaging: `cargo install powerpack-cli`.
@@ -78,6 +84,14 @@ new logic pure and route any new spawn through it.
   tie-breaker.
 - `time.rs` / `percent.rs` — RFC 3339 parsing and "3d ago"; query-string
   encoding. No date or URL crate.
+- `query.rs` — shared query syntax: free terms, `env:`, last-token time suffix
+  (`-15m`, `-4h`, `-7d`; default 1 h), other `key:value` kept verbatim.
+- `urls.rs` — every Datadog URL, pure. Logs / dashboards / notebooks / error
+  tracking take `from_ts`/`to_ts`/`live`; traces and the service page take
+  `start`/`end`/`paused`. Incidents by numeric public id.
+- `dashboards.rs` / `notebooks.rs` — parsing into `Board`; `sources.rs` —
+  fetch (pagination), cache key, `load` / `refresh` per kind; `filters.rs` —
+  one function per script filter.
 - `action.rs` — the `arg` protocol (`Action::to_arg` / `Action::parse`) and
   `execute`.
 - `alfred.rs` — item builders; item icons are macOS system icons.
@@ -104,6 +118,10 @@ new logic pure and route any new spawn through it.
 - **Public repo**: fixtures and docs use neutral names (`checkout-api`,
   `team:payments`, `alice@example.com`); never commit real service, team,
   dashboard or person names.
+- **Fixtures** (`tests/fixtures/pup/*.json`) are real `pup --no-envelope api`
+  responses, trimmed and anonymized with every key kept. When a source changes,
+  capture a new response and anonymize it the same way; never hand-write a
+  shape.
 - **Deploying**: `scripts/deploy.sh` copies the build over the installed
   workflow found by bundle id (never `powerpack link`: Alfred 6 turns symlinks
   into stale copies and fails to re-import over an install).

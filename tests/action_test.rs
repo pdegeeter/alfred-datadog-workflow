@@ -3,10 +3,21 @@
 mod common;
 
 use alfred_dd::action::{self, Action, OPEN, OSASCRIPT};
-use common::{app, FakeRunner};
+use alfred_dd::cache::{Key, Kind, Store};
+use alfred_dd::dashboards::Board;
+use alfred_dd::frecency::Frecency;
+use common::{app, fixture, FakeRunner, NOW_MS, PUP};
 
 fn all_actions() -> Vec<Action> {
     vec![
+        Action::Open {
+            key: "dashboard:abc-def-ghi".to_owned(),
+            url: "https://app.datadoghq.eu/dashboard/abc-def-ghi/checkout?from_ts=1&to_ts=2&live=true"
+                .to_owned(),
+        },
+        Action::Refresh {
+            kinds: vec![Kind::Dashboards, Kind::Notebooks],
+        },
         Action::OpenUrl {
             url: "https://app.datadoghq.eu/logs?query=service%3Acheckout-api".to_owned(),
         },
@@ -101,4 +112,83 @@ fn search_asks_alfred_to_show_the_query() {
     let call = &runner.calls()[0];
     assert!(call.args[1].contains("com.runningwithcrayons.Alfred"));
     assert_eq!(call.args[2], "dds ");
+}
+
+#[test]
+fn refresh_rejects_unknown_sources() {
+    assert!(Action::parse("refresh dashboards nope").is_err());
+    assert!(Action::parse("refresh").is_err());
+}
+
+#[test]
+fn open_records_the_frecency_then_opens() {
+    let dir = tempfile::tempdir().unwrap();
+    let runner = FakeRunner::new().with_success(OPEN, "");
+    let app = app(&runner, dir.path());
+
+    action::execute(
+        &app,
+        &Action::Open {
+            key: "monitor:101".to_owned(),
+            url: "https://app.datadoghq.eu/monitors/101".to_owned(),
+        },
+    )
+    .unwrap();
+
+    let frecency = Frecency::load(&Frecency::path(&app.config.data_dir));
+    let visits = frecency.visits("monitor:101").unwrap();
+    assert_eq!(visits.count, 1);
+    assert_eq!(visits.last_ms, NOW_MS);
+    assert_eq!(
+        runner.argvs(),
+        vec![vec!["https://app.datadoghq.eu/monitors/101".to_owned()]]
+    );
+}
+
+#[test]
+fn refresh_fetches_now_and_reports_counts() {
+    let dir = tempfile::tempdir().unwrap();
+    let runner = FakeRunner::new()
+        .with_success(PUP, &fixture("dashboards"))
+        .with_success(PUP, &fixture("notebooks"));
+    let app = app(&runner, dir.path());
+
+    let message = action::execute(
+        &app,
+        &Action::Refresh {
+            kinds: vec![Kind::Dashboards, Kind::Notebooks],
+        },
+    )
+    .unwrap();
+
+    assert_eq!(
+        message.as_deref(),
+        Some("Refreshed 4 dashboards, 3 notebooks")
+    );
+    let store = Store::new(&app.config.cache_dir);
+    let key = Key {
+        site: "datadoghq.eu".to_owned(),
+        scope: String::new(),
+    };
+    let entry = store.read::<Board>(Kind::Dashboards, &key).unwrap();
+    assert_eq!(entry.fetched_ms, NOW_MS);
+    assert_eq!(entry.items.len(), 4);
+}
+
+#[test]
+fn refresh_surfaces_pup_errors() {
+    let dir = tempfile::tempdir().unwrap();
+    let runner = FakeRunner::new();
+    let mut app = app(&runner, dir.path());
+    app.pup_path = None;
+
+    let err = action::execute(
+        &app,
+        &Action::Refresh {
+            kinds: vec![Kind::Dashboards],
+        },
+    )
+    .unwrap_err();
+
+    assert!(err.to_string().contains("brew install"), "{err}");
 }

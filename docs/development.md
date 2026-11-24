@@ -63,6 +63,10 @@ The binary speaks Alfred's JSON on stdout, so you can exercise it directly:
 ```sh
 cargo build
 B=./target/debug/alfred-dd
+export DD_ENV=prod   # your env; DD_SITE defaults to datadoghq.eu
+
+$B dashboards "checkout -4h" | python3 -m json.tool   # ddd
+$B refresh dashboards                                  # what a stale cache spawns
 
 # Actions take the `arg` of an item (see docs/architecture.md):
 $B run "open-url https://app.datadoghq.eu/logs"
@@ -77,6 +81,11 @@ All logic is pure and unit-tested; every process spawn goes through the
 records every call. The whole suite runs offline, without Datadog. Time is
 injected (`common::NOW_MS`).
 
+pup responses come from `tests/fixtures/pup/*.json`: one real response per
+endpoint, captured with `pup --no-envelope api <endpoint>`, trimmed to a few
+items and anonymized (neutral names such as `checkout-api`, `team:payments`,
+`alice@example.com`) with every key of the real response kept.
+
 | Test file                | Covers |
 | ------------------------ | ------ |
 | `tests/config_test.rs`   | `DD_SITE` / `DD_ENV` defaults, blank values, trimming. |
@@ -85,7 +94,10 @@ injected (`common::NOW_MS`).
 | `tests/frecency_test.rs` | Recording, one-week half-life, recency vs frequency, persistence, corrupted file. |
 | `tests/ranking_test.rs`  | Accent folding, tiers, multi-word queries, score and tie-breaker ordering, empty query. |
 | `tests/time_test.rs`     | RFC 3339 parsing (fractions, offsets), "3d ago", percent-encoding. |
-| `tests/action_test.rs`   | `arg` round-trip of every action, invalid args, execution (open, clipboard, Alfred search). |
+| `tests/action_test.rs`   | `arg` round-trip of every action, invalid args, execution (frecency then open, clipboard, Alfred search, refresh counts and errors). |
+| `tests/query_test.rs`    | Terms, `env:` (override, being typed), time suffixes (only last), passthrough `key:value`, URLs and times not filters. |
+| `tests/urls_test.rs`     | Every URL builder on EU / US / US3 sites, time ranges (live / paused), encoding, blank searches, site normalization, Datadog hosts. |
+| `tests/dashboards_test.rs` | Dashboards and notebooks fixtures, deleted dashboards, notebook pagination, ranking (accents, `nb:` / `db:`, frecency), every modifier, empty result, stale cache ⇒ detached refresh + `rerun`, pup error items. |
 | `tests/plist_test.rs`    | `workflow/info.plist`: every keyword and the subcommand it runs, every modifier connected to the action, the readme, the `DD_SITE` / `DD_ENV` defaults (uses macOS `plutil`). |
 
 ## Project layout

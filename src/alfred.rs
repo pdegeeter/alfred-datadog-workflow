@@ -9,6 +9,11 @@
 use powerpack::{Item, Key, Modifier};
 
 use crate::action::Action;
+use crate::cache::Kind;
+use crate::dashboards::{Board, BoardKind};
+use crate::pup::{self, PupError};
+use crate::time;
+use crate::urls::{Urls, Window};
 
 /// macOS system icons, so the workflow ships no artwork of its own.
 pub mod icons {
@@ -77,4 +82,128 @@ pub fn modifier(keys: &[Key], subtitle: &str, action: &Action) -> Modifier {
     Modifier::new_multi(keys.iter().copied())
         .subtitle(subtitle)
         .arg(action.to_arg())
+}
+
+/// The item explaining why `kind` could not be loaded.
+pub fn pup_error_item(kind: Kind, error: &PupError) -> Item {
+    match error {
+        PupError::Missing => error_item(
+            "pup is not installed",
+            &format!("Install it with: {}", pup::INSTALL_COMMAND),
+        ),
+        PupError::NotLoggedIn => error_item(
+            &format!("Run `{}`", pup::LOGIN_COMMAND),
+            "pup has no valid Datadog session (it may have expired)",
+        ),
+        PupError::Forbidden => error_item(
+            &format!("Datadog refused access to {kind}"),
+            &format!("Your pup login needs the {} permission", kind.scope()),
+        ),
+        PupError::RateLimited => error_item("Datadog rate limit reached", "Retry in a few seconds"),
+        PupError::Other(message) => error_item(&format!("Cannot load {kind}"), message),
+    }
+}
+
+/// Last item of a list: ↩ refreshes `kinds` now.
+pub fn refresh_item(kinds: &[Kind], fetched_ms: Option<i64>, now_ms: i64) -> Item {
+    let names: Vec<&str> = kinds.iter().map(|kind| kind.name()).collect();
+    let names = names.join(" & ");
+    let age = fetched_ms.map_or("never fetched".to_owned(), |fetched| {
+        format!("updated {}", time::ago(fetched, now_ms))
+    });
+
+    action_item(
+        format!("Refresh {names}"),
+        format!("Cached list {age} · ↩ fetch it again now"),
+        &Action::Refresh {
+            kinds: kinds.to_vec(),
+        },
+    )
+    .icon(icons::refresh())
+}
+
+/// `ddd`: one item per dashboard or notebook.
+///
+/// ↩ open · ⌘ open on `window` · ⌥ copy URL · ⇧ search the list for `search`.
+pub fn board_items(
+    boards: Vec<Board>,
+    urls: &Urls,
+    window: Window,
+    search: &str,
+    now_ms: i64,
+) -> Vec<Item> {
+    boards
+        .into_iter()
+        .map(|board| {
+            let url = board.url(urls);
+            let key = board.frecency_key();
+            let (label, icon, list_url) = match board.kind {
+                BoardKind::Dashboard => (
+                    "Dashboard",
+                    icons::dashboard(),
+                    urls.dashboard_search(search),
+                ),
+                BoardKind::Notebook => {
+                    ("Notebook", icons::notebook(), urls.notebook_search(search))
+                }
+            };
+            let label = match &board.detail {
+                Some(detail) => format!("{label} ({detail})"),
+                None => label.to_owned(),
+            };
+            let mut subtitle: Vec<String> = Vec::new();
+
+            if !board.author.is_empty() {
+                subtitle.push(board.author.clone());
+            }
+
+            subtitle.push(label);
+
+            if let Some(modified) = board.modified_ms {
+                subtitle.push(format!("modified {}", time::ago(modified, now_ms)));
+            }
+
+            Item::new(board.title.clone())
+                .subtitle(subtitle.join(" · "))
+                .arg(
+                    Action::Open {
+                        key: key.clone(),
+                        url: url.clone(),
+                    }
+                    .to_arg(),
+                )
+                .icon(icon)
+                .copy_text(url.clone())
+                .modifier(modifier(
+                    &[Key::Command],
+                    "Open on the query's time range",
+                    &Action::Open {
+                        key,
+                        url: board.url_at(urls, window),
+                    },
+                ))
+                .modifier(modifier(
+                    &[Key::Option],
+                    "Copy the URL",
+                    &Action::Copy { text: url },
+                ))
+                .modifier(modifier(
+                    &[Key::Shift],
+                    "Search the list in Datadog",
+                    &Action::OpenUrl { url: list_url },
+                ))
+        })
+        .collect()
+}
+
+/// `ddd` with no match: search the dashboard list in Datadog.
+pub fn no_board_item(urls: &Urls, search: &str) -> Item {
+    action_item(
+        format!("Search Datadog dashboards for “{search}”"),
+        "No matching dashboard or notebook in the cache",
+        &Action::OpenUrl {
+            url: urls.dashboard_search(search),
+        },
+    )
+    .icon(icons::dashboard())
 }

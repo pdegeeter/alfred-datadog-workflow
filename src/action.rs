@@ -9,7 +9,10 @@
 use anyhow::{anyhow, bail, Result};
 
 use crate::app::App;
+use crate::cache::Kind;
+use crate::frecency::Frecency;
 use crate::runner::CommandRunner;
+use crate::sources;
 
 /// Program used for clipboard writes and Alfred searches.
 pub const OSASCRIPT: &str = "/usr/bin/osascript";
@@ -24,21 +27,31 @@ const ALFRED_SEARCH_SCRIPT: &str = "on run argv\ntell application id \"com.runni
 /// Something the user asked for by actioning an item.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
+    /// Record an open of `key` in the frecency, then open the URL.
+    Open { key: String, url: String },
     /// Open a URL, without touching frecency.
     OpenUrl { url: String },
     /// Copy text to the clipboard.
     Copy { text: String },
     /// Show Alfred with this query typed in (e.g. `ddd `).
     Search { query: String },
+    /// Fetch these sources now and replace their cache.
+    Refresh { kinds: Vec<Kind> },
 }
 
 impl Action {
     /// Encode as the `arg` of an Alfred item.
     pub fn to_arg(&self) -> String {
         match self {
+            Action::Open { key, url } => join("open", &[key, url]),
             Action::OpenUrl { url } => join("open-url", &[url]),
             Action::Copy { text } => join("copy", &[text]),
             Action::Search { query } => format!("search {query}"),
+            Action::Refresh { kinds } => {
+                let names: Vec<&str> = kinds.iter().map(|kind| kind.name()).collect();
+
+                join("refresh", &[&names.join(" ")])
+            }
         }
     }
 
@@ -47,6 +60,17 @@ impl Action {
         let (verb, payload) = arg.split_once(' ').unwrap_or((arg.trim(), ""));
 
         let action = match verb.trim() {
+            "open" => {
+                let (key, url) = payload
+                    .trim()
+                    .split_once(' ')
+                    .ok_or_else(|| anyhow!("missing url in {arg:?}"))?;
+
+                Action::Open {
+                    key: required(key, "key")?,
+                    url: required(url.trim(), "url")?,
+                }
+            }
             "open-url" => Action::OpenUrl {
                 url: required(payload.trim(), "url")?,
             },
@@ -56,6 +80,20 @@ impl Action {
             "search" => Action::Search {
                 query: required(payload.trim_start(), "query")?,
             },
+            "refresh" => {
+                let kinds = payload
+                    .split_whitespace()
+                    .map(|name| {
+                        Kind::parse(name).ok_or_else(|| anyhow!("unknown source: {name:?}"))
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+
+                if kinds.is_empty() {
+                    bail!("missing source");
+                }
+
+                Action::Refresh { kinds }
+            }
             other => bail!("unknown action: {other:?}"),
         };
 
@@ -106,6 +144,19 @@ pub fn alfred_search(runner: &dyn CommandRunner, query: &str) -> Result<()> {
 /// Perform `action`. Returns the text of the notification to show, if any.
 pub fn execute(app: &App, action: &Action) -> Result<Option<String>> {
     match action {
+        Action::Open { key, url } => {
+            let path = Frecency::path(&app.config.data_dir);
+            let mut frecency = Frecency::load(&path);
+            frecency.record(key, app.now_ms);
+
+            if let Err(err) = frecency.save(&path) {
+                eprintln!("cannot save frecency: {err}");
+            }
+
+            open_url(app.runner, url)?;
+
+            Ok(None)
+        }
         Action::OpenUrl { url } => {
             open_url(app.runner, url)?;
 
@@ -120,6 +171,18 @@ pub fn execute(app: &App, action: &Action) -> Result<Option<String>> {
             alfred_search(app.runner, query)?;
 
             Ok(None)
+        }
+        Action::Refresh { kinds } => {
+            let mut done = Vec::new();
+
+            for kind in kinds {
+                match sources::refresh(app, *kind)? {
+                    Some(count) => done.push(format!("{count} {kind}")),
+                    None => done.push(format!("{kind} (already refreshing)")),
+                }
+            }
+
+            Ok(Some(format!("Refreshed {}", done.join(", "))))
         }
     }
 }

@@ -8,6 +8,69 @@
 	<string>Tools</string>
 	<key>connections</key>
 	<dict>
+		<key>A2000000-0000-0000-0000-0000000000A2</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>1048576</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>524288</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>262144</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>131072</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>E0000000-0000-0000-0000-0000000000E0</string>
+				<key>modifiers</key>
+				<integer>1179648</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>E0000000-0000-0000-0000-0000000000E0</key>
 		<array>
 			<dict>
@@ -32,6 +95,55 @@
 	<string>Datadog</string>
 	<key>objects</key>
 	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<false/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>ddd</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Loading dashboards…</string>
+				<key>script</key>
+				<string>./alfred-dd dashboards "$1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>nb: notebooks only · db: dashboards only · -1h time range</string>
+				<key>title</key>
+				<string>Datadog dashboards &amp; notebooks</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A2000000-0000-0000-0000-0000000000A2</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
@@ -80,7 +192,7 @@
 	<key>readme</key>
 	<string>Navigate Datadog from Alfred. Read-only: every action opens a URL, copies text or refreshes a local cache.
 
-
+- ddd — dashboards and notebooks (nb: / db: to restrict; ⌘ with the time range, ⌥ copy URL, ⇧ search the dashboard list)
 
 Queries: free terms match names; env:&lt;env&gt; overrides DD_ENV; a last token such as -15m, -4h or -7d sets the time range (default -1h, live).
 
@@ -88,6 +200,13 @@ Requires pup (brew install datadog-labs/pack/pup) logged in with `pup auth login
 </string>
 	<key>uidata</key>
 	<dict>
+		<key>A2000000-0000-0000-0000-0000000000A2</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>30</integer>
+		</dict>
 		<key>E0000000-0000-0000-0000-0000000000E0</key>
 		<dict>
 			<key>xpos</key>

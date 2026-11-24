@@ -2,7 +2,7 @@
 
 mod common;
 
-use alfred_dd::pup::{classify, Failure, Pup, PupError};
+use alfred_dd::pup::{classify, locate_in, Failure, Pup, PupError, CANDIDATES};
 use common::FakeRunner;
 
 const PUP: &str = "/opt/homebrew/bin/pup";
@@ -162,16 +162,21 @@ fn locate_prefers_the_first_existing_candidate() {
     let usr_local = dir.path().join("usr-local-pup");
     std::fs::write(&usr_local, "").unwrap();
 
-    let runner = FakeRunner::new();
     let homebrew = homebrew.to_str().unwrap();
     let usr_local = usr_local.to_str().unwrap();
 
-    let found = Pup::locate_in(&runner, &[homebrew, usr_local]).unwrap();
-    assert_eq!(found.program(), usr_local);
+    assert_eq!(
+        locate_in(&[homebrew, usr_local]).as_deref(),
+        Some(usr_local)
+    );
 
     std::fs::write(homebrew, "").unwrap();
-    let found = Pup::locate_in(&runner, &[homebrew, usr_local]).unwrap();
-    assert_eq!(found.program(), homebrew);
+    assert_eq!(locate_in(&[homebrew, usr_local]).as_deref(), Some(homebrew));
 
-    assert!(Pup::locate_in(&runner, &["/nowhere/pup"]).is_none());
+    assert_eq!(locate_in(&["/nowhere/pup"]), None);
+}
+
+#[test]
+fn candidates_are_homebrew_on_apple_silicon_then_intel() {
+    assert_eq!(CANDIDATES, ["/opt/homebrew/bin/pup", "/usr/local/bin/pup"]);
 }
